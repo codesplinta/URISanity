@@ -1,6 +1,6 @@
 {
   "name": "URISanity",
-  "description": "santize URIs in web applications with confidence",
+  "description": "santize URIs in web and web-like applications with confidence",
   "version": "0.1.0",
   "main": "src/index.js",
   "devDependencies": {},
