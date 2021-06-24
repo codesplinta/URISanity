@@ -1,2 +1,2 @@
 # URISanity
-sanitize uris in web application with confidence
+sanitize uris in web and web-like application with confidence
