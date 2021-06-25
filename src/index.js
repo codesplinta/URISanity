@@ -3,6 +3,8 @@
  * @secondaryAuthor: https://twitter.com/isocroft
  * @owner: https://twitter.com/codesplinta
  *
+ * Copyright (c) 2021
+ *
  * @source: [first-party] https://github.com/braintree/sanitize-url
  *
  * Based on the well known URI schemes;
@@ -43,7 +45,7 @@ const origin = isStandardBrowserEnv()
 ? global['location'].origin 
 : (global['process'].env || {}).ORIGIN
 
-export function sanitizeUrl(url, options = {}) {
+function sanitizeUrl(url, options = {}) {
   if (!url 
     || (url.match(/:\/\/(?:[#$@=*.!]|[/]){0,}$/) !== null)
       || (url.includes('////////////'))) {
@@ -83,3 +85,11 @@ export function sanitizeUrl(url, options = {}) {
 
   return "about:blank" // sanitizedUrl;
 }
+
+const URISanity = {
+   vet(url, options) {
+      return sanitizeUrl(url, options)
+   }
+}
+
+export default URISanity
