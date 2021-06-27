@@ -28,14 +28,14 @@
   ],
   "standard": {
     "global": [
-			"global",
-			"self"
-		],
-		"ignore": [
-			"/.github",
-			"/examples",
-			"/_githooks",
-		]
+      "global",
+      "self"
+    ],
+    "ignore": [
+      "/.github",
+      "/examples",
+      "/_githooks",
+    ]
   },
   "devDependencies": {
     "@babel/plugin-external-helpers": "7.12.13",
@@ -58,7 +58,7 @@
     "rollup-watch": "^4.3.1",
   },
   "dependencies": {
-    "": ""
+    "normalize-url": "4.0.0"
   },
   "directories": {
     "test": "test"
