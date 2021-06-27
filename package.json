@@ -68,6 +68,7 @@
     "url": "git://github.com/codesplinta/URISanity.git"
   },
   "keywords": [
+    "xss",
     "URI",
     "sanitization"
   ],
