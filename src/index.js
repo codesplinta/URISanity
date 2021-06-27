@@ -75,7 +75,7 @@ function sanitizeUrl(url, options = {}) {
     switch (true) {
       case (!options.allowScriptOrDataURI
         || urlScheme.match(/^(java|vb)script|data/) === null):
-      case (!options.allowCommsAppURI || !options.dbConnectionStringURI):
+      case (!options.allowCommsAppURI || !options.allowDBConnectionStringURI):
         return "about:blank";
         break;
       default:
