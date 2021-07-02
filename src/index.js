@@ -19,7 +19,8 @@ const safeInternetURISchemeRegex = /^(?:(?:f|ht)tps?|cid|xmpp|mms|webcal|aaa|aca
 /* See: https://gist.github.com/gruber/249502/61cbb59f099fdf90316c4e409c7523b6d5124f80 */
 const safeURIRegex = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/?)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\)){0,}(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s\!()\[\]{};:\'\"\.\,<>?«»“”‘’]){0,})/i;
 const commsAppURISchemeRegex = /^(whatsapp|zoommtg|slack|mailto|tel|callto|sms|skype)/im;
-const databaseConnectionStringSchemeRegex = /^(jdbc|odbc|pg|mongodb)/im;
+const databaseConnectionStringURISchemeRegex = /^(jdbc|odbc|pg|mongodb)/im;
+const browserURISchemeRegex = /^(view-source|moz-extension|chrome-extension)/im;
 const serviceAPIURISchemeRegex = /^(cloudinary)/im;
 const ctrlCharactersRegex =
   /[\u0000-\u001F\u007F-\u009F\u2000-\u200D\uFEFF]/gim;
@@ -66,8 +67,11 @@ function sanitizeUrl(url, options = {}) {
   ) || sanitizedUrl.match(
     commsAppURISchemeRegex
   ) || sanitizedUrl.match(
-    databaseConnectionStringSchemeRegex
+    databaseConnectionStringURISchemeRegex
+  ) || sanitizedUrl.match(
+    browserURISchemeRegex
   );
+
   const urlScheme = urlSchemeParseResults[0] || '';
 
   if (!unsafeURISchemeRegex.test(urlScheme)
@@ -75,7 +79,7 @@ function sanitizeUrl(url, options = {}) {
     switch (true) {
       case (!options.allowScriptOrDataURI
         || urlScheme.match(/^(java|vb)script|data/) === null):
-      case (!options.allowCommsAppURI || !options.allowDBConnectionStringURI):
+      case (!options.allowCommsAppURI || !options.allowDBConnectionStringURI || !options.allowBrowserURI):
         return "about:blank";
         break;
       default:
