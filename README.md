@@ -12,7 +12,7 @@ npm install URISanity
 ```js
 const URISanity = require('URISanity')
 
-const sanitizedUrl = URISanity.vet('view-source://https://www.example.com/undefined', {
+const sanitizedUrl = URISanity.vet('view-source:https://www.example.com/undefined', {
   allowScriptOrDataURI: false,
   allowCommsAppURI: true,
   allowDBConnectionStringURI: false,
