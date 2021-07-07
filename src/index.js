@@ -33,6 +33,7 @@ const globals = self || global || {} // Browser, ReactNative, NativeScript, Node
 const nodeJSProcess = globals['process'] || { versions: { node: '.' }, env: {} }
 const NODE_MAJOR_VERSION = parseInt(nodeJSProcess.versions.node.split('.')[0]);
 
+// See: https://developer.mozilla.org/en-US/docs/Web/API/URL#browser_compatibility
 if (NODE_MAJOR_VERSION < 10) {
   if (!globals.URL) {
     globals.URL = function (urlString) {
