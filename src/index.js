@@ -25,6 +25,8 @@ const serviceAPIURISchemeRegex = /^(cloudinary)/im;
 const ctrlCharactersRegex =
   /[\u0000-\u001F\u007F-\u009F\u2000-\u200D\uFEFF]/gim;
 const urlSchemeRegex = /^([^:]+):/gm;
+const dataURIRegex = /^data:(?<type>[^,]*?),(?<data>[^#]*?)(?:#(?<hash>.*))?$/i;
+const scriptURIRegex = /^(?:vb|java)script:/i;
 const relativeFirstCharacters = [".", "/"];
 const global = self || global // browser AND NodeJS globals
 
@@ -45,7 +47,7 @@ function isStandardBrowserEnv() {
 
 const origin = isStandardBrowserEnv() 
 ? global['location'].origin 
-: (global['process'].env || {}).ORIGIN
+: (global['constants'] || global['process'] && global['process'].env || {}).ORIGIN
 
 function sanitizeUrl(url, options = {}) {
   if (!url 
@@ -57,12 +59,13 @@ function sanitizeUrl(url, options = {}) {
   const sanitizedUrl = url.replace(ctrlCharactersRegex, "").trim();
 
   if (isRelativeUrlWithoutProtocol(sanitizedUrl)) {
-    return safeURIRegex.test(origin + sanitizedUrl) 
-      ? sanitizedUrl 
-      : "about:blank";
+    let originalSanitized = origin + sanitizedUrl
+    sanitizedUrl = safeURIRegex.test(originalSanitized) 
+      ? originalSanitized 
+      : "//";
   }
 
-  const urlSchemeParseResults = sanitizedUrl.match(
+  let urlSchemeParseResults = sanitizedUrl.match(
     safeInternetURISchemeRegex
   ) || sanitizedUrl.match(
     commsAppURISchemeRegex
@@ -72,18 +75,46 @@ function sanitizeUrl(url, options = {}) {
     browserURISchemeRegex
   );
 
+  urlSchemeParseResults = urlSchemeParseResults !== null ? urlSchemeParseResults : []
   const urlScheme = urlSchemeParseResults[0] || '';
+
+  let { hostname, pathname, search, hash } = new URL(sanitizedUrl.toLowerCase())
+  
+  // See: https://en.wikipedia.org/wiki/Hostname#Restrictions_on_valid_host_names
+  // See: https://datatracker.ietf.org/doc/html/rfc3986
+  if (/^(?:((?:www|[a-z]{1,11})\.)(?!\1)(?:[a-z\-\d]{1,63})\.(?:[a-z.\-\d]{2,63}))$/i.test(hostname)
+      || /^(((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/.test(hostname)
+        || /^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/.test(hostname)
+          || /^(?:((?:[a-z0-9-._~]{0,}|%[1-9a-f]?[0-9a-f]|[!$&'()*+,;=])|\:|\@)*)/i.test(pathname)
+            || /^((?:[a-z0-9-._~]{0,}|%[1-9a-f]?[0-9a-f]|[!$&'()*+,;=])|\:|\@|\/|\?)*$/i.test(search)
+              || /^((?:[a-z0-9-._~]{0,}|%[1-9a-f]?[0-9a-f]|[!$&'()*+,;=])|\:|\@|\/|\?)*$/i.test(hash)) {
+      if (hostname.includes('.00')) {
+        return "about:blank"
+      }
+
+      if (search.match(/%3c(?=\/)?/) !== null 
+          && search.includes('%3e') && search.includes('%3d')) {
+        return "about:blank"
+      }
+  }
 
   if (!unsafeURISchemeRegex.test(urlScheme)
      || safeURIRegex.test(sanitizedUrl)) {
     switch (true) {
       case (!options.allowScriptOrDataURI
         || urlScheme.match(/^(java|vb)script|data/) === null):
-      case (!options.allowCommsAppURI || !options.allowDBConnectionStringURI || !options.allowBrowserURI):
+      case !options.allowCommsAppURI:
+      case !options.allowDBConnectionStringURI:
+      case !options.allowBrowserURI:
         return "about:blank";
         break;
       default:
-        return urlScheme !== '' ? sanitizedUrl : "about:blank";
+        if (options.allowScriptOrDataURI) {
+          if(dataURIRegex.exec(sanitizedUrl) || scriptURIRegex.exec(sanitizedUrl)) {
+             if (urlScheme !== '')
+               return sanitizedUrl
+          }
+        }
         break;
     }
   }
