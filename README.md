@@ -19,7 +19,7 @@ const sanitizedUrl = URISanity.vet('view-source:https://www.example.com/undefine
   allowBrowserSpecificURI: false
 });
 
-console.log(sanitizedUrl) // "view-source:https://www.example.com/undefined"
+console.log(sanitizedUrl) // "about:blank"
 ```
 
 ### NodeJS environment
