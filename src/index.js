@@ -28,17 +28,23 @@ const urlSchemeRegex = /^([^:]+):/gm;
 const dataURIRegex = /^data:(?<type>[^,]*?),(?<data>[^#]*?)(?:#(?<hash>.*))?$/i;
 const scriptURIRegex = /^(?:vb|java)script:/i;
 const relativeFirstCharacters = [".", "/"];
-const global = self || global // browser AND NodeJS globals
 
-function isRelativeUrlWithoutProtocol(url) {
-  if (typeof url === "string") {
-    return relativeFirstCharacters.indexOf(url.charAt(0)) > -1;
+const globals = self || global || {} // Browser, ReactNative, NativeScript, NodeJS globals
+const nodeJSProcess = globals['process'] || { versions: { node: '.' }, env: {} }
+const NODE_MAJOR_VERSION = parseInt(nodeJSProcess.versions.node.split('.')[0]);
+
+if (NODE_MAJOR_VERSION < 10) {
+  if (!globals.URL) {
+    globals.URL = function (urlString) {
+      const urlParser = require('url')
+      const parsedUrl = urlParser.parse(urlString)
+      return { ...parsedUrl, hostname: parsedUrl.host }
+    }
   }
-  return false
 }
 
 function isStandardBrowserEnv() {
-  const environ = global['navigator'];
+  const environ = globals['navigator'];
   return (
     "undefined" !== typeof environ 
       && environ.product.match(/^(ReactNative|NativeScript|NS)$/i) === null
@@ -46,8 +52,15 @@ function isStandardBrowserEnv() {
 };
 
 const origin = isStandardBrowserEnv() 
-? global['location'].origin 
-: (global['constants'] || global['process'] && global['process'].env || {}).ORIGIN
+? globals['location'].origin 
+: (globals['constants'] || nodeJSProcess.env).ORIGIN
+
+function isRelativeUrlWithoutProtocol(url) {
+  if (typeof url === "string") {
+    return relativeFirstCharacters.indexOf(url.charAt(0)) > -1;
+  }
+  return false
+}
 
 function sanitizeUrl(url, options = {}) {
   if (!url 
@@ -78,7 +91,7 @@ function sanitizeUrl(url, options = {}) {
   urlSchemeParseResults = urlSchemeParseResults !== null ? urlSchemeParseResults : []
   const urlScheme = urlSchemeParseResults[0] || '';
 
-  let { hostname, pathname, search, hash } = new URL(sanitizedUrl.toLowerCase())
+  const { hostname, pathname, search, hash } = new URL(sanitizedUrl.toLowerCase())
   
   // See: https://en.wikipedia.org/wiki/Hostname#Restrictions_on_valid_host_names
   // See: https://datatracker.ietf.org/doc/html/rfc3986
@@ -101,25 +114,20 @@ function sanitizeUrl(url, options = {}) {
   if (!unsafeURISchemeRegex.test(urlScheme)
      || safeURIRegex.test(sanitizedUrl)) {
     switch (true) {
-      case (!options.allowScriptOrDataURI
-        || urlScheme.match(/^(java|vb)script|data/) === null):
-      case !options.allowCommsAppURI:
-      case !options.allowDBConnectionStringURI:
-      case !options.allowBrowserURI:
-        return "about:blank";
+      case (options.allowScriptOrDataURI
+        && urlScheme.match(/^(java|vb)script|data/) === null) 
+          && (dataURIRegex.exec(sanitizedUrl) || scriptURIRegex.exec(sanitizedUrl)):
+      case options.allowCommsAppURI:
+      case options.allowDBConnectionStringURI:
+      case options.allowBrowserURI:
+        if (urlScheme !== '')
+          return sanitizedUrl
         break;
       default:
-        if (options.allowScriptOrDataURI) {
-          if(dataURIRegex.exec(sanitizedUrl) || scriptURIRegex.exec(sanitizedUrl)) {
-             if (urlScheme !== '')
-               return sanitizedUrl
-          }
-        }
+        return "about:blank" // sanitizedUrl;
         break;
     }
   }
-
-  return "about:blank" // sanitizedUrl;
 }
 
 const URISanity = {
