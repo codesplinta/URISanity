@@ -120,7 +120,7 @@ function sanitizeUrl(url, options = {}) {
           && (dataURIRegex.exec(sanitizedUrl) || scriptURIRegex.exec(sanitizedUrl)):
       case options.allowCommsAppURI:
       case options.allowDBConnectionStringURI:
-      case options.allowBrowserURI:
+      case options.allowBrowserSpecificURI:
         if (urlScheme !== '')
           return sanitizedUrl
         break;
