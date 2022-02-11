@@ -11,13 +11,43 @@
  * See: https://en.wikipedia.org/wiki/List_of_URI_schemes
  *
  * @created: 23/06/2021
- * @last-updated: 24/06/2021
+ * @last-updated: 30/01/2022
  */
 
-const unsafeURISchemeRegex = /^([^\w]*)(javascript|data|vbscript|app|admin)/im;
-const safeInternetURISchemeRegex = /^(?:(?:f|ht)tps?|cid|xmpp|mms|webcal|aaa|acap|bolo|data|wss?|telnet|udp|irc)/im;
+/*
+function formToJSON( elem ) {
+  var current, entries, item, key, output, value;
+  output = {};
+  entries = new FormData( elem ).entries();
+  // Iterate over values, and assign to item.
+  while ( item = entries.next().value )
+    {
+      // assign to variables to make the code more readable.
+      key = item[0];
+      value = item[1];
+      // Check if key already exist
+      if (Object.prototype.hasOwnProperty.call( output, key)) {
+        current = output[ key ];
+        if ( !Array.isArray( current ) ) {
+          // If it's not an array, convert it to an array.
+          current = output[ key ] = [ current ];
+        }
+        current.push( value ); // Add the new value to the array.
+      } else {
+        output[ key ] = value;
+      }
+    }
+  return JSON.stringify( output );
+}
+*/
+
+/* @HINT: all URI schemes that are mostly unsafe for web browsers to launch */
+const unsafeURISchemeRegex = /^([^\w]*)(javascript|vbscript|app|admin|icloud-sharing|icloud-vetting|file|help|facetime-audio|applefeedback|ibooks|macappstore|udoc|ts|st|x-apple-helpbasic|(?:x\-)?radar)/im;
+/* @HINT: all URI schemes that are mostly safe for web browsers to launch */
+const safeInternetURISchemeRegex = /^(?:(?:f|ht)tps?|cid|xmpp|mms|webcal|aaa|acap|bolo|data|blob|wss?|irc|udp)/im;
 /* @CHECK: https://gist.github.com/gruber/249502/61cbb59f099fdf90316c4e409c7523b6d5124f80 */
 const safeURIRegex = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/?)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\)){0,}(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s\!()\[\]{};:\'\"\.\,<>?«»“”‘’]){0,})/i;
+/* @HINT: */
 const commsAppURISchemeRegex = /^(whatsapp|zoommtg|slack|mailto|tel|callto|sms|skype)/im;
 const databaseConnectionStringURISchemeRegex = /^(jdbc|odbc|pg|mongodb)/im;
 const browserURISchemeRegex = /^(view-source|moz-extension|chrome-extension)/im;
@@ -25,9 +55,11 @@ const serviceAPIURISchemeRegex = /^(cloudinary|gs|s3|grpc)/im;
 const ctrlCharactersRegex =
   /[\u0000-\u001F\u007F-\u009F\u2000-\u200D\uFEFF]/gim;
 const urlSchemeRegex = /^([^:]+):/gm;
-const dataURIRegex = /^data:([\w-.]+\/[\w-.]+(\+[\w-.]+)?)?(;[\w-.]+=[\w-.]+)*;base64,([a-zA-Z0-9\/+\n=]+)$/
+/* @CHECK: https://datatracker.ietf.org/doc/html/rfc2397 - DATA URI */
+/* @CHECK: https://www.w3.org/TR/FileAPI/#blob-url - BLOB URL */
+const dataURIRegex = /^(?:data:([\w-.]+\/[\w-.]+(\+[\w-.]+)?)?(;[\w-.]+=[\w-.]+)*;base64,([a-zA-Z0-9\/+\n=]+)|blob:())$/
 const scriptURIRegex = /^(?:vb|java)script:/i;
-const webTransportURIRegex = /^(?:https?|wss?)/im
+const webTransportURIRegex = /^(?:https?|wss?|about)/im
 const relativeFirstCharacters = [".", "/"];
 
 /* @HINT: Global Stub for the Browser, ReactNative, NativeScript, NodeJS */
@@ -91,15 +123,21 @@ function checkParamsOverWhiteList (uri, paramsWhiteList = [], data = '') {
     let json = ''
     if (('FormData' in global)
       && (data instanceof global['FormData'])) {
-      let object = {}
+      if (typeof Object.fromEntries === 'function') {
+        json = JSON.stringify(
+          Object.fromEntries(
+            data.entries()
+          )
+        );
+      } else {
+        let object = {}
 
-      data.forEach(function(value, key){
-        object[key] = value;
-      })
+        data.forEach(function(value, key){
+          object[key] = value;
+        })
 
-      json = JSON.stringify(object);
-
-      // json = JSON.stringify(Object.fromEntries(data.entries()));
+        json = JSON.stringify(object);
+      }
     } else {
       json = data
     }
@@ -144,7 +182,7 @@ function sanitizeUrl(url, options = {}) {
   const sanitizedUrl = url.replace(ctrlCharactersRegex, "").trim();
 
   if (isRelativeUrlWithoutProtocol(sanitizedUrl)) {
-    let originalSanitized = origin + sanitizedUrl
+    let originalSanitized = sanitizedUrl.startsWith('/') ? origin + sanitizedUrl : origin + '/' + sanitizedUrl 
     sanitizedUrl = safeURIRegex.test(originalSanitized) 
       ? originalSanitized 
       : "//";
@@ -179,8 +217,10 @@ function sanitizeUrl(url, options = {}) {
 
       if (search.toLowerCase().match(/%3c(?=\/)?/) !== null 
           && search.toLowerCase().includes('%3e')
-            && search.toLowerCase().includes('%3d')
-              && search.toLowerCase().includes('%22')) {
+            && search.toLowerCase().includes('%3f')
+              && search.toLowerCase().includes('%3d')
+                && search.toLowerCase().includes('%27')
+                  && search.toLowerCase().includes('%22')) {
         return "about:blank"
       }
   }
@@ -231,8 +271,8 @@ function sanitizeUrl(url, options = {}) {
 const URISanity = {
   extractParamFromUri,
   checkParamsOverWhiteList,
-  vet(url, options) {
-    return sanitizeUrl(url, options)
+  vet(url, options = {}) {
+    return sanitizeUrl(url, options || {})
   }
 }
 
