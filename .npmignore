@@ -1,0 +1,7 @@
+node_modules
+.travis.yml
+karma.conf.js
+examples
+src
+tests
+*.png

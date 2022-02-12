@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URISanity -  Example</title>
+    <style type="text/css">
+        input#unvetted {
+            padding: 5px 10px;
+            border: 1px solid #555;
+            display: block;
+            width: 100%;
+            margin-bottom: 4%;
+        }
+
+        button#action {
+            padding: 8px;
+            border: none;
+            display: inline-block;
+            background-color: lightgreen;
+            color: black;
+        }
+
+        label[id^="option_"] {
+            display: block;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <script type="text/javascript" src="../dist/urisanity.min.js"></script>
+    <script type="text/javascript">
+        ;(function (w, d) {
+            var singleLineTextInput = d.getElementById('unvetted')
+            var multiLineTextInput = d.getElementById('vetted')
+            var options = Array.from(d.getElementsByName('options'))
+
+            var actionButton = d.getElementById('action')
+
+            actionButton.addEventListener('click', function handler () {
+                var flagOptions = {}
+
+                options.forEach(function iterator (option) {
+                    flagOptions[option.name] = option.checked
+                })
+
+                multiLineTextInput.value = w.urisanity.vet(
+                    singleLineTextInput.value,
+                    flagOptions
+                )
+            }, false)
+        }(window, document)) 
+    </script>
+    <main>
+        <form>
+            <div>
+                <input id="unvetted" name="unvetted" type="url" placeholder="Enter Unvetted URI" value="blob:https://www.foo-.evil.com/undefined">
+                <button id="action" name="action">Vet URI</button>
+            </div>
+            <div>
+                <label for="options" id="option_1">
+                    <input type="checkbox" name="options" value="allowScriptOrDataURI" checked>
+                    <span>allowScriptOrDataURI</span>
+                </label>
+                <label for="options" id="option_2">
+                    <input type="checkbox" name="options" value="allowDBConnectionStringURI">
+                    <span>allowDBConnectionStringURI</span>
+                </label>
+                <label for="options" id="option_3">
+                    <input type="checkbox" name="options" value="allowBrowserSpecificURI">
+                    <span>allowBrowserSpecificURI</span>
+                </label>
+                <label for="options" id="option_4">
+                    <input type="checkbox" name="options" value="allowWebTransportURI" checked>
+                    <span>allowWebTransportURI</span>
+                </label>
+                <label for="options" id="option_5">
+                    <input type="checkbox" name="options" value="allowServiceAPIURI">
+                    <span>allowServiceAPIURI</span>
+                </label>
+                <label for="options" id="option_6">
+                    <input type="checkbox" name="options" value="allowCommsAppURI" checked>
+                    <span>allowCommsAppURI</span>
+                </label>
+            </div>
+            <div>
+                <textarea id="vetted" name="vetted" placeholder="Vetted URI goes here!"></textarea>
+            </div>
+        </form>
+    </main>
+</body>
+</html>
