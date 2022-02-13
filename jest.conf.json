@@ -1,0 +1,5 @@
+{
+    "bail": true,
+    "verbose": true,
+    "displayName": "URI Sanity"
+}

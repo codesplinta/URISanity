@@ -17,7 +17,7 @@
 
 /* @HINT: all URI schemes that are mostly unsafe for web browsers to launch */
 const unsafeURISchemeRegex =
-  /^([^\w]*)(javascript|vbscript|app|admin|icloud-sharing|icloud-vetting|file|help|facetime-audio|applefeedback|ibooks|macappstore|udoc|ts|st|x-apple-helpbasic|(?:x\-)?radar)/im
+  /^([^\w]*)(javascript|vbscript|app|admin|icloud-sharing|icloud-vetting|file|help|aim|facetime-audio|applefeedback|ibooks|macappstore|udoc|ts|st|x-apple-helpbasic|(?:x\-)?radar)/im
 /* @HINT: all URI schemes that are mostly safe for web browsers to launch */
 const safeInternetURISchemeRegex =
   /^(?:(?:f|ht)tps?|cid|xmpp|mms|webcal|aaa|acap|bolo|data|blob|wss?|irc|udp)/im
@@ -44,7 +44,7 @@ const webTransportURIRegex = /^(?:(blob:)?https?|wss?|about)/im
 const relativeFirstCharacters = ['.', '/']
 
 /* @HINT: Global Stub for the Browser, ReactNative, NativeScript, NodeJS */
-const $globals = self || global || {}
+const $globals = window || global || {}
 /* @HINT: Conditionally access the NodeJS process global */
 const nodeJSProcess = $globals.process || { versions: { node: '.' }, env: {} }
 const NODE_MAJOR_VERSION = parseInt(nodeJSProcess.versions.node.split('.')[0])
@@ -254,12 +254,13 @@ function sanitizeUrl (url, options = {}) {
     }
 
     if (
-      search.toLowerCase().match(/%3c(?=\/)?/) !== null &&
+      search.toLowerCase().match(/%3c(?=\/)?/g) !== null &&
       search.toLowerCase().includes('%3e') &&
       search.toLowerCase().includes('%3f') &&
       search.toLowerCase().includes('%3d') &&
       search.toLowerCase().includes('%27') &&
-      search.toLowerCase().includes('%22')
+      search.toLowerCase().includes('%22') &&
+      search.toLowerCase().match(/\.(?:jar|dmg|exe|bin|sh|sed)/g) !== null
     ) {
       return 'about:blank'
     }
