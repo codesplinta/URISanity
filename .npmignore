@@ -2,6 +2,7 @@ node_modules
 coverage
 .github
 .babelrc
+.prettierrc
 .travis.yml
 jest.conf.js
 rollup.config.js

@@ -6,7 +6,12 @@
   "module": "dist/urisanity.es.js",
   "browser": "dist/urisanity.js",
   "files": [
-    "dist"
+    "dist",
+    "examples",
+    "CHANGELOG.md",
+    "LICENSE",
+    "package-lock.json",
+    "README.md"
   ],
   "scripts": {
     "lint": "standard --fix",
@@ -23,8 +28,7 @@
   },
   "pre-commit": [
     "lint",
-    "build",
-    "commit-amend-build"
+    "build"
   ],
   "standard": {
     "global": [

@@ -1,5 +1,5 @@
 const nodeResolve = require('rollup-plugin-node-resolve')
-const commonjs = require('rollup-plugin-commonjs');
+const commonjs = require('rollup-plugin-commonjs')
 const babel = require('rollup-plugin-babel')
 const replace = require('rollup-plugin-replace')
 const { terser } = require('rollup-plugin-terser')
@@ -20,7 +20,7 @@ const config = {
     },
     format: 'umd',
     sourcemap: true,
-    banner: `/*!\r\n * URISanity: Date=${new Date};NodeBuildVersion=${parseInt(String(node))}\r\n *\r\n */\r\n`
+    banner: `/*!\r\n * URISanity: Date=${new Date()};NodeBuildVersion=${parseInt(String(node))}\r\n *\r\n */\r\n`
   },
   plugins: [
     nodeResolve({
