@@ -156,11 +156,11 @@ Here is a brief guide to using this library and it's API method(s)
 ### `URISanity.extractParamValueFromUri(uri: String, queryParamName: String): String`
 >The `.extractParamValueFromUri(uri: String, queryParamName: String)` method is used to extract the value of a query parameter from a given URI. Both arguments are not optional.
 
-### `URISanity.checkParamsOverWhiteList(uri: String, paramNamesWhiteList: Array [, querySearch: String | Object]): Boolean`
->The `.checkParamsOverWhiteList(uri: String, queryParamNames: Array [, querySearch: String | Object])` method is used to check whether the params (query OR body) associated with a given URI is correct, allowed and valid for it's use case.
+### `URISanity.checkParamsOverWhiteList(uri: String, paramNamesWhiteList: Array [, querySearch: String]): Boolean`
+>The `.checkParamsOverWhiteList(uri: String, queryParamNames: Array [, querySearch: String | Object])` method is used to check whether the params (query OR body) associated with a given URI is correct, allowed and valid for it's use case. Only the third argument for this method is optional.
 
 ### `URISanity.isSameOrigin(uri: String): Boolean`
->The `.isSameOrigin(uri: String)` method is used to check if the URI being inspected has the sam origin (protocol + host) as the environment (Browser or NodeJS)
+>The `.isSameOrigin(uri: String)` method is used to check if the URI being inspected has the sam origin (protocol + host) as the environment (Browser or NodeJS). The only argument for this method is not optional.
 
 ## License
 
@@ -169,6 +169,8 @@ MIT License
 ## Contributing
 
 If you wish to contribute to this project, you are very much welcome. Please, create an issue first before you proceed to create a PR (either to propose a feature or fix a bug). Make sure to clone the repo, checkout to a contribution branch and build the project before making modifications to the codebase.
+
+Run all the following command (in order they appear) below:
 
 ```bash
 

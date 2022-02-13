@@ -1,7 +1,10 @@
 node_modules
 coverage
+.github
+.babelrc
 .travis.yml
 jest.conf.js
+rollup.config.js
 examples
 src
 tests
