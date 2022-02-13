@@ -2,7 +2,7 @@
 
 # URI Sanity
 
-A small library used in the Browser and NodeJS to vet URIs (to mitigate vulnerabilities) with confidence. In other words, It's the [DOMPurify](https://www.github.com/cure53/DOMPurify) for URIs. A uniform resource locator (URL) is, in fact, a subset of [uniform resource identifiers](https://whatis.techtarget.com/definition/URI-Uniform-Resource-Identifier?_gl=1*7pixwg*_ga*NDg2NjQ5NTIxLjE2NDQ3MTE5NjA.*_ga_TQKE4GS5P9*MTY0NDcxMTk1OC4xLjAuMTY0NDcxMTk1OC4w&_ga=2.95812444.1772810844.1644711960-486649521.1644711960) (URI). Therefore, this library looks at the super set of all resource identifiers where possible.
+A small library used in the Browser and NodeJS to vet URIs (to mitigate vulnerabilities) with confidence. In other words, It's the [DOMPurify](https://www.github.com/cure53/DOMPurify) for URIs. A uniform resource locator (URL) is, in fact, a subset of [uniform resource identifiers](https://whatis.techtarget.com/definition/URI-Uniform-Resource-Identifier?_gl=1*7pixwg*_ga*NDg2NjQ5NTIxLjE2NDQ3MTE5NjA.*_ga_TQKE4GS5P9*MTY0NDcxMTk1OC4xLjAuMTY0NDcxMTk1OC4w&_ga=2.95812444.1772810844.1644711960-486649521.1644711960) (URI). Therefore, this library covers the super set of all resource identifiers where possible.
 
 ## Motivation
 
