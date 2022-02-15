@@ -6,19 +6,34 @@ A small library used in the Browser and NodeJS to vet URIs (to mitigate vulnerab
 
 ## Motivation
 
-There are many web-based zero-day vulnerabilities that can be expolited using Standard and/or Custom URI schemes. Certain browsers like Safari and Firefox are usually subceptible to launching such URIs without a prompt or restrictions and enable [Arbitrary File Execution](https://en.wikipedia.org/wiki/Arbitrary_code_execution#:~:text=arbitrary%20code%20execution%20(ACE)%20is%20an%20attacker's%20ability%20to%20run%20any%20commands%20or%20code%20of%20the%20attacker's%20choice%20on%20a%20target%20machine%20or%20in%20a%20target%20process.), [Remote Code Execution](https://www.checkpoint.com/cyber-hub/cyber-security/what-is-remote-code-execution-rce/#:~:text=Remote%20code%20execution%20(RCE)%20attacks,control%20over%20a%20compromised%20machine.) and/or [Connection String Pollution](https://link.springer.com/chapter/10.1007/978-3-642-16120-9_16?noAccess=true) where possible. This is why this library was built. It moves to create a layer of protection for your web applications both on the Browser and on the Server (NodeJS only).
+There are many web-based zero-day vulnerabilities (CVEs) that can be expolited in Browsers/NodeJS servers using Standard and/or Custom URI schemes. Certain browsers like Safari and Firefox are usually subceptible to launching such URIs without a prompt or restrictions and enable [Arbitrary File Execution](https://en.wikipedia.org/wiki/Arbitrary_code_execution#:~:text=arbitrary%20code%20execution%20(ACE)%20is%20an%20attacker's%20ability%20to%20run%20any%20commands%20or%20code%20of%20the%20attacker's%20choice%20on%20a%20target%20machine%20or%20in%20a%20target%20process.), [Remote Code Execution](https://www.checkpoint.com/cyber-hub/cyber-security/what-is-remote-code-execution-rce/#:~:text=Remote%20code%20execution%20(RCE)%20attacks,control%20over%20a%20compromised%20machine.) and/or [Connection String Pollution](https://link.springer.com/chapter/10.1007/978-3-642-16120-9_16?noAccess=true) (on the server) where possible. This is why this library was built. It moves to create a layer of protection for your web applications both on the Browser and on the Server (NodeJS only) by blocking badly formed/suspicious URIs.
 
 ## Installation
+
+Install using `npm`
 
 ```bash
 npm install urisanity
 ```
+
+ or install using `yarn`.
+
+```bash
+yarn add urisanity
+```
+
 
 ## Getting Started
 
 All you need to do is import the package appropriately depending on the environment (Browser OR Node) being used
 
 ### Browser environment
+
+> Using a `script` tag directly inside a web page
+
+```html
+<script type="text/javascript" src="https://unpkg.com/browse/urisanity@0.1.1/dist/urisanity.min.js" crossorigin="anonymous"></script>
+```
 
 > import as ES6 module - no setup required
 
@@ -113,7 +128,6 @@ if (typeof window.trustedTypes !== 'undefined') {
         sanitize all potentially malicious characters from HTML string 
       */
       return DOMPurify.sanitize(html, {
-        RETURN_TRUSTED_TYPE: true,
         USE_PROFILES: {
           html: true,
           svg: true,
@@ -126,7 +140,7 @@ if (typeof window.trustedTypes !== 'undefined') {
         vet URL string and return "about:blank" if URL string is suspicious
       */
       return URISanity.vet(url, {
-        allowCommsAppURI: true,
+        allowCommsAppURI: false,
         allowWebTransportURI: true,
       })
     },
@@ -180,3 +194,7 @@ $ npm run build
 
 $ npm run test
 ```
+
+## TypeScript
+
+You can find the TS declaration [here](https://gist.github.com/isocroft/021098c660318bf92f7ab05bba042f48) (simply copy from the gist and paste in the root of your project as `urisanity.d.ts`)

@@ -2,7 +2,7 @@
  * @author: https://twitter.com/isocroft
  * @owner: https://twitter.com/codesplinta
  *
- * @Copyright (c) 2021
+ * @Copyright (c) 2021 - 2022
  *
  * @sourced: [first-party] https://github.com/braintree/sanitize-url
  *
@@ -44,7 +44,7 @@ const webTransportURIRegex = /^(?:(blob:)?https?|wss?|about)/im
 const relativeFirstCharacters = ['.', '/']
 
 /* @HINT: Global Stub for the Browser, ReactNative, NativeScript, NodeJS */
-const $globals = window || global || {}
+const $globals = typeof self === 'undefined' ? global || {} : self
 /* @HINT: Conditionally access the NodeJS process global */
 const nodeJSProcess = $globals.process || { versions: { node: '.' }, env: {} }
 const NODE_MAJOR_VERSION = parseInt(nodeJSProcess.versions.node.split('.')[0])
