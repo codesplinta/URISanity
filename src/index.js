@@ -17,7 +17,7 @@
 
 /* @HINT: all URI schemes that are mostly unsafe for web browsers to launch */
 const unsafeURISchemeRegex =
-  /^([^\w]*)(javascript|vbscript|app|admin|icloud-sharing|icloud-vetting|file|help|aim|facetime-audio|applefeedback|ibooks|macappstore|udoc|ts|st|x-apple-helpbasic|(?:x\-)?radar)/im
+  /^([^\w]*)(unsafe|javascript|vbscript|app|admin|icloud-sharing|icloud-vetting|help|aim|facetime-audio|applefeedback|ibooks|macappstore|udoc|ts|st|x-apple-helpbasic|(?:x\-)?radar)/im
 /* @HINT: all URI schemes that are mostly safe for web browsers to launch */
 const safeInternetURISchemeRegex =
   /^(?:(?:f|ht)tps?|cid|xmpp|mms|webcal|aaa|acap|bolo|data|blob|wss?|irc|udp)/im
@@ -25,11 +25,12 @@ const safeInternetURISchemeRegex =
 const safeURIRegex =
   /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/?)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\)){0,}(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s\!()\[\]{};:\'\"\.\,<>?«»“”‘’]){0,})/i
 /* @HINT: */
-const commsAppURISchemeRegex =
+const commsAppURISchemeRegex = 
   /^(whatsapp|zoommtg|slack|mailto|tel|callto|sms|skype)/im
 const databaseConnectionStringURISchemeRegex =
   /^(jdbc(:sqlserver|:mysql|:mariadb|:sqlite)?|odbc|postgres(ql)?|mongodb)/im
 const browserURISchemeRegex = /^(view-source|moz-extension|chrome-extension)/im
+const fileSystemURISchemeRegex = /^(file|blob)/im
 const serviceAPIURISchemeRegex = /^(cloudinary|gs|s3|grpc)/im
 /* @HINT: */
 const ctrlCharactersRegex =
@@ -37,8 +38,9 @@ const ctrlCharactersRegex =
 // const urlSchemeRegex = /^([^:]+):/gm
 /* @CHECK: https://datatracker.ietf.org/doc/html/rfc2397 - DATA URI */
 /* @CHECK: https://www.w3.org/TR/FileAPI/#blob-url - BLOB URL */
-const dataURIRegex =
-  /^(?:data:([\w-.]+\/[\w-.]+(\+[\w-.]+)?)?(;[\w-.]+=[\w-.]+)*;base64,([a-zA-Z0-9\/+\n=]+))$/
+const dataURIBINRegex =
+  /^data:(?:image\/(?:bmp|gif|jpeg|jpg|png|tiff|webp)|video\/(?:mpeg|mp4|ogg|webm)|audio\/(?:mp3|oga|ogg|opus));base64,(?:[a-zA-Z0-9\/+\n=]+)$/i
+const dataURITEXTRegex = /^data:(?:text\/(?:javascript|html|css)),(?:.*)$/im
 const scriptURIRegex = /^(?:vb|java)script:/i
 const webTransportURIRegex = /^(?:(blob:)?https?|wss?|about)/im
 const relativeFirstCharacters = ['.', '/']
@@ -85,12 +87,12 @@ function isRelativeUrlWithoutProtocol (url) {
 
 /* @CHECK: https://gist.github.com/blafrance/4053759 */
 function extractParamValueFromUri (uri, paramName) {
-  if (!uri) {
-    return
+  if (!uri || dataURITEXTRegex.test(uri.trim()) || dataURIBINRegex.test(uri.trim())) {
+    return null
   }
 
   const regex = new RegExp('[\\?&#]' + paramName + '=([^&#]*)')
-  const params = regex.exec(uri)
+  const params = regex.exec(uri.trim())
   if (params != null) {
     return unescape(params[1])
   }
@@ -131,16 +133,20 @@ function formDataToJSON (elem) {
 }
 
 function isSameOrigin (uri) {
-  if (!uri) {
-    return
+  if (!uri || dataURITEXTRegex.test(uri.trim()) || dataURIBINRegex.test(uri.trim())) {
+    return false
   }
 
-  const parsedUrl = new $globals.URL(uri)
+  const parsedUrl = new $globals.URL(uri.trim())
   return origin === parsedUrl.origin
 }
 
 function checkParamsOverWhiteList (uri, paramsWhiteList = [], data = '') {
-  const parsedUrl = new $globals.URL(uri)
+  if (!uri || dataURITEXTRegex.test(uri.trim()) || dataURIBINRegex.test(uri.trim())) {
+    return false
+  }
+
+  const parsedUrl = new $globals.URL(uri.trim())
   const paramKeys = []
   const paramValues = []
   let preparedData = null
@@ -217,7 +223,9 @@ function sanitizeUrl (url, options = {}) {
     sanitizedUrl.match(safeInternetURISchemeRegex) ||
     sanitizedUrl.match(commsAppURISchemeRegex) ||
     sanitizedUrl.match(databaseConnectionStringURISchemeRegex) ||
-    sanitizedUrl.match(browserURISchemeRegex)
+    sanitizedUrl.match(browserURISchemeRegex) ||
+    sanitizedUrl.match(serviceAPIURISchemeRegex) ||
+    sanitizedUrl.match(webTransportURIRegex)
 
   urlSchemeParseResults =
     urlSchemeParseResults !== null ? urlSchemeParseResults : []
@@ -260,7 +268,7 @@ function sanitizeUrl (url, options = {}) {
       search.toLowerCase().includes('%3d') &&
       search.toLowerCase().includes('%27') &&
       search.toLowerCase().includes('%22') &&
-      search.toLowerCase().match(/\.(?:jar|dmg|exe|bin|sh|sed)/g) !== null
+      search.toLowerCase().match(/\.(?:jar|dmg|exe|bin|sh|sed|py)/g) !== null
     ) {
       return 'about:blank'
     }
@@ -274,8 +282,8 @@ function sanitizeUrl (url, options = {}) {
 
     if (
       options.allowScriptOrDataURI &&
-      urlScheme.match(/^(java|vb)script|data/) === null &&
-      (dataURIRegex.test(sanitizedUrl) || scriptURIRegex.test(sanitizedUrl))
+      urlScheme.match(/^(java|vb)script|data/) !== null &&
+      (dataURIBINRegex.test(sanitizedUrl) || scriptURIRegex.test(sanitizedUrl))
     ) {
       pass = true
     }
@@ -312,10 +320,18 @@ function sanitizeUrl (url, options = {}) {
       pass = true
     }
 
+    if (
+      options.allowFileSystemURI &&
+      fileSystemURISchemeRegex.test(sanitizedUrl)
+    ) {
+      pass = true
+    }
+
     if (urlScheme !== '' && pass) {
       return sanitizedUrl
     } else {
-      return 'about:blank' // sanitizedUrl;
+      /* console.warn(`WARNING: unsafe URL > ${sanitizedUrl} (see https://g.co/ng/security#xss)`) */
+      return 'about:blank'
     }
   }
 }
