@@ -10,7 +10,7 @@
  * See: https://en.wikipedia.org/wiki/List_of_URI_schemes
  *
  * @created: 23/06/2021
- * @last-updated: 12/02/2022
+ * @last-updated: 21/04/2022
  */
 
 /* eslint-disable no-useless-escape */
@@ -20,7 +20,7 @@ const unsafeURISchemeRegex =
   /^([^\w]*)(unsafe|javascript|vbscript|app|admin|icloud-sharing|icloud-vetting|help|aim|facetime-audio|applefeedback|ibooks|macappstore|udoc|ts|st|x-apple-helpbasic|(?:x\-)?radar)/im
 /* @HINT: all URI schemes that are mostly safe for web browsers to launch */
 const safeInternetURISchemeRegex =
-  /^(?:(?:f|ht)tps?|cid|xmpp|mms|webcal|aaa|acap|bolo|data|blob|wss?|irc|udp)/im
+  /^(?:(?:f|ht)tps?|cid|xmpp|mms|webcal|aaa|acap|bolo|data|blob|file|local|wss?|irc|udp)/im
 /* @CHECK: https://gist.github.com/gruber/249502/61cbb59f099fdf90316c4e409c7523b6d5124f80 */
 const safeURIRegex =
   /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/?)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\)){0,}(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s\!()\[\]{};:\'\"\.\,<>?«»“”‘’]){0,})/i
@@ -29,19 +29,20 @@ const commsAppURISchemeRegex =
   /^(whatsapp|zoommtg|slack|mailto|tel|callto|sms|skype)/im
 const databaseConnectionStringURISchemeRegex =
   /^(jdbc(:sqlserver|:mysql|:mariadb|:sqlite)?|odbc|postgres(ql)?|mongodb)/im
-const browserURISchemeRegex = /^(view-source|moz-extension|chrome-extension)/im
-const fileSystemURISchemeRegex = /^(file|blob)/im
-const serviceAPIURISchemeRegex = /^(cloudinary|gs|s3|grpc)/im
+const browserURISchemeRegex = /^(view-source|moz-extension|(?:filesystem:|blob:)?chrome-extension)/im
+/* @CHECK: - FILE URI */
+/* @CHECK: https://www.w3.org/TR/FileAPI/#blob-url - BLOB URL */
+const fileSystemURISchemeRegex = /^(file|local|blob)/im
+const serviceAPIURISchemeRegex = /^(cloudinary|obsidian|gs|s3|grpc)/im
 /* @HINT: */
 const ctrlCharactersRegex =
   /[\u0000-\u001F\u007F-\u009F\u2000-\u200D\uFEFF]/gim; /* eslint-disable-line */
 // const urlSchemeRegex = /^([^:]+):/gm
 /* @CHECK: https://datatracker.ietf.org/doc/html/rfc2397 - DATA URI */
-/* @CHECK: https://www.w3.org/TR/FileAPI/#blob-url - BLOB URL */
 const dataURIBINRegex =
-  /^data:(?:image\/(?:bmp|gif|jpeg|jpg|png|tiff|webp)|video\/(?:mpeg|mp4|ogg|webm)|audio\/(?:mp3|oga|ogg|opus));base64,(?:[a-zA-Z0-9\/+\n=]+)$/i
-const dataURITEXTRegex = /^data:(?:text\/(?:javascript|html|css)),(?:.*)$/im
-const scriptURIRegex = /^(?:vb|java)script:/i
+  /^data:(?:image\/(?:bmp|gif|jpeg|jpg|png|tiff|webp|svg\+xml)|video\/(?:mpeg|mp4|ogg|webm)|audio\/(?:mp3|oga|ogg|opus));base64,(?:[a-zA-Z0-9\/+\n=]+)$/i
+const dataURITEXTRegex = /^data:(?:text\/(?:javascript|html|css|plain))(?:;charset=(UTF-8|iso-8859-7))?,(?:.*)$/im
+const scriptURIRegex = /^(?:vb|java)(?:\s*)?script/im
 const webTransportURIRegex = /^(?:(blob:)?https?|wss?|about)/im
 const relativeFirstCharacters = ['.', '/']
 
@@ -137,8 +138,14 @@ function isSameOrigin (uri) {
     return false
   }
 
-  const parsedUrl = new $globals.URL(uri.trim())
-  return origin === parsedUrl.origin
+  try {
+    const parsedUrl = new $globals.URL(uri.trim())
+    return origin === parsedUrl.origin
+  } catch (error) {
+    if (error) {
+      return false
+    }
+  }
 }
 
 function checkParamsOverWhiteList (uri, paramsWhiteList = [], data = '') {
@@ -231,9 +238,16 @@ function sanitizeUrl (url, options = {}) {
     urlSchemeParseResults !== null ? urlSchemeParseResults : []
   const urlScheme = urlSchemeParseResults[0] || ''
 
-  const { hostname, pathname, search, hash } = new $globals.URL(
-    sanitizedUrl.toLowerCase()
-  )
+  try {
+    const { hostname, pathname, search, hash } = new $globals.URL(
+      sanitizedUrl.toLowerCase()
+    )
+  } catch (error) {
+    if (error) {
+      /* console.warn(`WARNING: unsafe URL > ${sanitizedUrl} (see https://g.co/ng/security#xss)`) */
+      return 'about:blank'
+    }
+  }
 
   /* @CHECK: https://en.wikipedia.org/wiki/Hostname#Restrictions_on_valid_host_names */
   /* CHECK: https://datatracker.ietf.org/doc/html/rfc3986 */
@@ -262,12 +276,21 @@ function sanitizeUrl (url, options = {}) {
     }
 
     if (
-      search.toLowerCase().match(/%3c(?=\/)?/g) !== null &&
-      search.toLowerCase().includes('%3e') &&
-      search.toLowerCase().includes('%3f') &&
-      search.toLowerCase().includes('%3d') &&
-      search.toLowerCase().includes('%27') &&
-      search.toLowerCase().includes('%22') &&
+      pathname.toLowerCase().includes('&apos;') ||
+      pathname.toLowerCase().includes('%29') ||
+      pathname.toLowerCase().includes('%28')
+    ) {
+      return 'about:blank'
+    }
+
+    if (
+      search.toLowerCase().match(/%3c(?=\/)?/g) !== null ||
+      search.toLowerCase().includes('%3e') ||
+      search.toLowerCase().includes('%3f') ||
+      search.toLowerCase().includes('%3d') ||
+      search.toLowerCase().includes('%27') ||
+      search.toLowerCase().includes('%22') ||
+      search.toLowerCase().includes('&apos;') ||
       search.toLowerCase().match(/\.(?:jar|dmg|exe|bin|sh|sed|py)/g) !== null
     ) {
       return 'about:blank'
