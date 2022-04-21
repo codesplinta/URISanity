@@ -43,6 +43,7 @@ import URISanity from 'urisanity';
 const sanitizedUrl = URISanity.vet('blob:https://www.foo-.evil.com/undefined', {
   // All Flag Options
   allowScriptOrDataURI: false,
+  allowFileSystemURI: false,
   allowCommsAppURI: true,
   allowDBConnectionStringURI: false,
   allowBrowserSpecificURI: false,
@@ -104,6 +105,19 @@ let sanitizedUrl = URISanity.vet(
 console.log(sanitizedUrl) // "about:blank"
 ```
 
+```js
+const URISanity = require('urisanity');
+
+let sanitizedUrl = URISanity.vet(
+  'file://www.airbnb.com/Users/xxx/Desktop/index.html',
+  {
+    allowWebTransportURI: false,
+    allowFileSystemURI: true
+  }
+);
+
+console.log(sanitizedUrl) // "file://www.airbnb.com/Users/xxx/Desktop/index.html"
+```
 ## Implementing Trusted Types
 
 > You can make use of [**Trusted Types**](https://w3c.github.io/webappsec-trusted-types/dist/spec/#trused-script-url) while using **URI Sanity**. An excerpt from a [_**2021 report from Google on Trusted Types**_](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/2cbfffc0943dabf34c499f786080ffa2cda9cb4c.pdf) reads:
@@ -112,6 +126,8 @@ _Trusted Types are supported in several popular frameworks and libraries includi
 Angular, React (with a feature flag), Lit, Karma, and Webpack. Enforcing Trusted Types
 in applications built on top of these frameworks is now [relatively simple](https://auth0.com/blog/securing-spa-with-trusted-types/); in some cases
 no application-level code changes are required._
+
+Before the advent of **Trusted Types** (specifically, in the days of Anugular 1.x), frontend web engineers used [this approach](https://stackoverflow.com/questions/15606751/angularjs-changes-urls-to-unsafe-in-extension-page) in sanitizing URIs for web applications and it was grossly inefficient and/or naive. This is also [another approach](https://github.com/angular/angular/blob/master/packages/core/src/sanitization/url_sanitizer.ts#L36) that still doesn't cater to a much braoder system for URI sanitization. Now, with **URISanity**, you have the broader systems needed for quality URI sanitization.
 
 ```js
 import URISanity from 'urisanity';
@@ -157,10 +173,11 @@ Here is a brief guide to using this library and it's API method(s)
 
 1. **allowCommsAppURI** : This applies only to the deep links that are used by communication tools and apps like Whatsapp, Zoom, Slack, Skype or browser comms URIs e.g. _sms, tel, whatsapp, slack_
 2. **allowDBConnectionStringURI** :  This applies only to database connection string URIs e.g. _postgresql, mongodb, jdbc:mysql_
-3. **allowBrowserSpecificURI** : This applies only to browser extension and browser data display URIs e.g. _view-source, moz-extension_
+3. **allowBrowserSpecificURI** : This applies only to browser extensions, packaged apps and browser data display URIs e.g. _view-source, moz-extension_
 4. **allowServiceAPIURI** : This appies only to third-party data storage services whos have specialized URIs for data transfer and storage operations e.g. _cloudinary, s3, grpc_
 5. **allowScriptOrDataURI** : This applies only to script and/or data URIs e.g. _data, javascript_
-6. **allowWebTransportURI** : This applies only to web data transport URIs e.g. _http, ws, blob:https_
+6. **allowFileSystemURI** : This applies only to URIs related to the local filesystem e.g. _blob, file, local_
+7. **allowWebTransportURI** : This applies only to web data transport URIs e.g. _http, ws, https, wss, blob:https_
 
 ### API Methods
 
