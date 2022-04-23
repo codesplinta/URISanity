@@ -6,7 +6,9 @@ A small library used in the Browser and NodeJS to vet URIs (to mitigate vulnerab
 
 ## Motivation
 
-There are many web-based zero-day vulnerabilities (CVEs) that can be expolited in Browsers/NodeJS servers using Standard and/or Custom URI schemes. Certain browsers like Safari and Firefox are usually subceptible to launching such URIs without a prompt or restrictions and enable [Arbitrary File Execution](https://en.wikipedia.org/wiki/Arbitrary_code_execution#:~:text=arbitrary%20code%20execution%20(ACE)%20is%20an%20attacker's%20ability%20to%20run%20any%20commands%20or%20code%20of%20the%20attacker's%20choice%20on%20a%20target%20machine%20or%20in%20a%20target%20process.), [Remote Code Execution](https://www.checkpoint.com/cyber-hub/cyber-security/what-is-remote-code-execution-rce/#:~:text=Remote%20code%20execution%20(RCE)%20attacks,control%20over%20a%20compromised%20machine.) and/or [Connection String Pollution](https://link.springer.com/chapter/10.1007/978-3-642-16120-9_16?noAccess=true) (on the server) where possible. This is why this library was built. It moves to create a layer of protection for your web applications both on the Browser and on the Server (NodeJS only) by blocking badly formed/suspicious URIs.
+There are many web-based zero-day vulnerabilities that can be expolited in Browsers/NodeJS servers using Standard and/or Custom URI schemes. Certain browsers like Safari and Firefox are usually subceptible to launching such URIs without a prompt or restrictions and enable [Arbitrary File Execution](https://en.wikipedia.org/wiki/Arbitrary_code_execution#:~:text=arbitrary%20code%20execution%20(ACE)%20is%20an%20attacker's%20ability%20to%20run%20any%20commands%20or%20code%20of%20the%20attacker's%20choice%20on%20a%20target%20machine%20or%20in%20a%20target%20process.), [Remote Code Execution](https://www.checkpoint.com/cyber-hub/cyber-security/what-is-remote-code-execution-rce/#:~:text=Remote%20code%20execution%20(RCE)%20attacks,control%20over%20a%20compromised%20machine.) and/or [Connection String Pollution](https://link.springer.com/chapter/10.1007/978-3-642-16120-9_16?noAccess=true) (on the server) where possible. This is why this library was built. It moves to create a layer of protection for your web applications both on the Browser and on the Server (NodeJS only) by blocking badly formed/suspicious URIs.
+
+Furthermore, other solutions like [braintree/sanitize-url](http://www.github.com/braintree/sanitize-url) are too naive and a bit buggy. Also, most front-end frameworks like **Angular** and **Vue** (safe for **React**) do not do a very robust and serious (non-trivial) job of sanitiziting URLs either. This is why this library is very important to web application developers who need reliability in sanitizing URLs.
 
 ## Installation
 
@@ -161,6 +163,201 @@ if (typeof window.trustedTypes !== 'undefined') {
       })
     },
   });
+}
+```
+
+## More Use Cases
+
+**URISanity** can be used to improve the web security of browser API sinks (injection sinks) that make use if URIs and aren't covered and/or catered for by **Trusted Types** and basic **CSP**. By instrumenting these API sinks (sinks for Document Object Model / Browser Object Model) and utilizing browser custom event API(s), the solution is quite elegant. Take a look below:
+
+>Let's define some basic browser custom events and their handler
+
+```javascript
+/* @NOTE: Can also be the "connect-src" whitelist of urls from a CSP directive */
+/* @HINT: The whitelist below is for excluding URLs that are not known to the web app and may be expoitative/suspicious */
+const whitelistedURLEndpoints = [
+  'https://www.facebook.com/tr',
+  'https://www.google-analytics.com/collect'
+]
+
+/* @HINT: Setting custome events to check and validate URLs */
+document.addEventListener( 'beforerequest', onBeforeURIUsed, false )
+document.addEventListener( 'beforeinclude', onBeforeURIUsed, false )
+
+/* @HINT: Event handler common to the two events above */
+function onBeforeURIUsed ( event ) {
+  /* @CHECK: https://www.npmjs.com/package/urisanity ; urisanity */
+  /* @HINT: Vet the URL endpoint being requested/included for safety */
+  if (window.urisanity.vet(
+    event.detail.endpoint,
+    { allowWebTransportURI: true }
+  ) !== 'about:blank') {
+    const { origin, pathname } = new URL(event.detail.endpoint)
+
+    /* @HINT: Make sure the endpoint being requested/included is part of the whitelist */
+    if (whitelistedURLEndpoints.includes(`${origin}${pathname}`)) {
+      if (origin.includes('.google-analytics.')) {
+        /* @HINT: Check that only the request params we need are attached */
+        /* @HINT: Any other extra params should not be allowed */
+        if (window.urisanity.checkParamsOverWhiteList(
+          event.detail.endpoint,
+          ['tid', 'cid'],
+          event.detail.data
+        )) {
+          return;
+        }
+      }
+    }
+  }
+
+  /* @HINT: trigger an error to be thrown when the endpoint is not in the whitelist above */
+  /* @HINT: Or the validation above for any origin (or for google-analytics) doesn't pass */
+  event.preventDefault()
+}
+```
+>Now, let's instrument certain browser API sinks and make them able to throw errors on suspicion of a malformed/malicious API.
+
+```javascript
+ /*!
+  * FIRST SECTION
+  *
+  */
+
+/* @HINT: Extract the native definitions of these APIs from the DOM Interfaces */
+const originalSetAttributeMethod = HTMLElement.prototype.setAttribute
+
+/* @HINT: Create a new definition for `setAttribute` that instruments the API to detect suspicious URIs */
+HTMLElement.prototype.setAttribute = function setAttribute (attributeName, newValue) {
+	  const that = this;
+	  const previousValue = that.getAttribute(attributeName);
+
+	  const timerID = window.setTimeout(function () { 
+      /* @HINT: Stop [ DOMSubtreeModified ] event from firing before [ DOMAttrModified ] event */
+		  originalSetAttributeMethod.call(that, attributeName, newValue);
+	  }, 0);
+
+    /* @HINT: Whenever the attribute name is `href`, then check the URL that is the value */
+    if (attributeName === 'href') {
+      /* @HINT: Fire a custom event `beforeinclude` to track manual whitelisting of URL endpoints */
+      let event = new window.CustomEvent('beforeinclude', {
+        detail: {
+          endpoint: newValue,
+          sink: "HTMLElement.setAttribute",
+          data: null
+        },
+        bubbles: true,
+        cancelable: true
+      });
+
+      /* @HINT: Detect if the dispatched custom event was cancelled by a call to `event.preventDefault()` */
+      /* @HINT: If the event was cancelled, it means the URL endpoint above was disallowed by the checks */
+      const cancelled = !document.dispatchEvent(event)
+
+       /* @HINT: If it's cancelled, stop the `setTimeout` call above from being executed by clearing the timeout */
+       /* @HINT: Also, we throw an error to stop the call to `setAttribute` from being requested */
+       if (cancelled) {
+         window.clearTimeout(timerID)
+         throw new Error(
+           "Suspicious Activity: "
+           +
+           event.detail.endpoint
+           +
+           " request, using [ " + event.detail.data + " ] in "
+           +
+           " [ " + event.detail.sink + " ]"
+         )
+       }
+    }
+
+    /* @HINT: When listening to mutation events, might be okay to stagger certain event sequences properly */
+	  if (newValue !== previousValue) {
+	    let event = document.createEvent("MutationEvent");
+	    event.initMutationEvent(
+	      "DOMAttrModified",
+	      true,
+	      false,
+	      that,
+	      previousValue || "",
+	      newValue || "",
+	      attributeName,
+	      (previousValue === null) ? event.ADDITION : event.MODIFICATION
+	    );
+		  
+	    that.dispatchEvent(
+        event
+      );
+	  }
+	};
+
+
+ /*!
+  * NEXT SECTION
+  *
+  */
+
+
+/* @HINT: craete a function/constructor that does nothing a.k.a no-operation function */
+const noop = function noOperation () {}
+
+/* @HINT: Copy out the user-agent interface function `sendBeacon` */
+const NativeSendBeacon = window.Navigator.prototype.sendBeacon || noop
+
+window.Navigator.prototype.sendBeacon = function sendBeacon (url, data) {
+  /* @HINT: Fire a custom event `beforerequest` to track manual whitelisting of URL endpoints */
+  const event = new window.CustomEvent('beforerequest', {
+    detail: {
+      endpoint: url,
+      method: "POST",
+      sink: "Navigator.sendBeacon",
+      data: data
+    },
+    bubbles: true,
+    cancelable: true
+  })
+
+  /* @HINT: Detect if the dispatched custom event was cancelled by a call to `event.preventDefault()` */
+  /* @HINT: If the event was cancelled, it means the URL endpoint above was disallowed by the checks */
+  const cancelled = !document.dispatchEvent(event)
+
+   /* @HINT: If it's cancelled, we throw an error to stop the call to `sendBeacon` from being requested */
+   if (cancelled) {
+     throw new Error(
+       "Suspicious Activity: "
+       +
+       event.detail.endpoint
+       +
+       " request, using [ " + event.detail.data + " ] in "
+	      +
+	      " [ " + event.detail.sink + " ]"
+     )
+   }
+
+   /* @HINT: If all checks out and no error was thrown above then proceed as usual */
+   return NativeSendBeacon.call(this, url, data);
+};
+
+/* @HINT: define property `name` on custom function */
+  Object.defineProperty(sendBeacon, 'name', {
+    writable: false,
+    value: 'sendBeacon'
+  });
+
+/* @HINT: define property function `toString` on custom function */
+Object.defineProperty(sendBeacon, 'toString', {
+  writable: true,
+  value: function toString () {
+    return NativeSendBeacon.toString()
+  }
+})
+
+/* @HINT: Take care of the special Firefox/IceWeasel (Gecko) property `toSource` */
+if ('toSource' in NativeSendBeacon) {
+  Object.defineProperty(sendBeacon, 'toSource', {
+    writable: true,
+    value: function toSource () {
+      return NativeSendBeacon.toSource()
+    }
+  })
 }
 ```
 
