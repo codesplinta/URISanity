@@ -8,7 +8,7 @@ A small library used in the Browser and NodeJS to vet URIs (to mitigate vulnerab
 
 There are many web-based zero-day vulnerabilities that can be expolited in Browsers/NodeJS servers using Standard and/or Custom URI schemes. Certain browsers like Safari and Firefox are usually subceptible to launching such URIs without a prompt or restrictions and enable [Arbitrary File Execution](https://en.wikipedia.org/wiki/Arbitrary_code_execution#:~:text=arbitrary%20code%20execution%20(ACE)%20is%20an%20attacker's%20ability%20to%20run%20any%20commands%20or%20code%20of%20the%20attacker's%20choice%20on%20a%20target%20machine%20or%20in%20a%20target%20process.), [Remote Code Execution](https://www.checkpoint.com/cyber-hub/cyber-security/what-is-remote-code-execution-rce/#:~:text=Remote%20code%20execution%20(RCE)%20attacks,control%20over%20a%20compromised%20machine.) and/or [Connection String Pollution](https://link.springer.com/chapter/10.1007/978-3-642-16120-9_16?noAccess=true) (on the server) where possible. This is why this library was built. It moves to create a layer of protection for your web applications both on the Browser and on the Server (NodeJS only) by blocking badly formed/suspicious URIs.
 
-Furthermore, other solutions like [braintree/sanitize-url](http://www.github.com/braintree/sanitize-url) are too naive and a bit buggy. Also, most front-end frameworks like **Angular** and **Vue** (safe for **React**) do not do a very robust and serious (non-trivial) job of sanitiziting URLs either. This is why this library is very important to web application developers who need reliability in sanitizing URLs.
+Furthermore, other solutions like [braintree/sanitize-url](https://www.github.com/braintree/sanitize-url) are quite naive and a bit too specific in [it's approach](https://github.com/braintree/sanitize-url/issues/14) to URL sanitization. Also, most web front-end frameworks like **Angular** and **Vue** (safe for **React**) do not do a very robust and serious (non-trivial) job of sanitiziting URLs either. This is why this library is very important to web application developers who need reliability in sanitizing URLs.
 
 ## Installation
 
@@ -129,7 +129,7 @@ Angular, React (with a feature flag), Lit, Karma, and Webpack. Enforcing Trusted
 in applications built on top of these frameworks is now [relatively simple](https://auth0.com/blog/securing-spa-with-trusted-types/); in some cases
 no application-level code changes are required._
 
-Before the advent of **Trusted Types** (specifically, in the days of Anugular 1.x), frontend web engineers used [this approach](https://stackoverflow.com/questions/15606751/angularjs-changes-urls-to-unsafe-in-extension-page) in sanitizing URIs for web applications and it was grossly inefficient and/or naive. This is also [another approach](https://github.com/angular/angular/blob/master/packages/core/src/sanitization/url_sanitizer.ts#L36) that still doesn't cater to a much braoder system for URI sanitization. Now, with **URISanity**, you have the broader systems needed for quality URI sanitization.
+Before the advent of **Trusted Types** (specifically, in the days of Angular 1.x), frontend web engineers used [this approach](https://stackoverflow.com/questions/15606751/angularjs-changes-urls-to-unsafe-in-extension-page) in sanitizing URIs for web applications and it was grossly inefficient and/or naive. This is also [another approach](https://github.com/angular/angular/blob/master/packages/core/src/sanitization/url_sanitizer.ts#L36) that still doesn't cater to a much braoder system for URI sanitization. Now, with **URISanity**, you have the broader systems needed for quality URI sanitization.
 
 ```js
 import URISanity from 'urisanity';
@@ -360,6 +360,8 @@ if ('toSource' in NativeSendBeacon) {
   })
 }
 ```
+
+Finally, the code above in the event handler get triggered whenever `navigator.sendBeacon()` is called and the URLs are using **URISanity**.
 
 ## Documentation
 
