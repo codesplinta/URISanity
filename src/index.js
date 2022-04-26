@@ -242,57 +242,62 @@ function sanitizeUrl (url, options = {}) {
     const { hostname, pathname, search, hash } = new $globals.URL(
       sanitizedUrl.toLowerCase()
     )
+
+    /* @CHECK: https://en.wikipedia.org/wiki/Hostname#Restrictions_on_valid_host_names */
+    /* CHECK: https://datatracker.ietf.org/doc/html/rfc3986 */
+    if (
+      /^(?:((?:www|[a-z]{1,11})\.)(?!\1)(?:[a-z\-\d]{1,63})\.(?:[a-z.\-\d]{2,63}))$/i.test(
+        hostname
+      ) ||
+      /^(((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/.test(
+        hostname
+      ) ||
+      /^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/.test(
+        hostname
+      ) ||
+      /^(?:((?:[a-z0-9-._~]{0,}|%[1-9a-f]?[0-9a-f]|[!$&'()*+,;=])|\:|\@)*)/i.test(
+        pathname
+      ) ||
+      /^((?:[a-z0-9-._~]{0,}|%[1-9a-f]?[0-9a-f]|[!$&'()*+,;=])|\:|\@|\/|\?)*$/i.test(
+        search
+      ) ||
+      /^((?:[a-z0-9-._~]{0,}|%[1-9a-f]?[0-9a-f]|[!$&'()*+,;=])|\:|\@|\/|\?)*$/i.test(
+        hash
+      )
+    ) {
+      if (hostname.includes('.00')) {
+        return 'about:blank'
+      }
+
+      if (
+        pathname.toLowerCase().includes('&apos;') ||
+        pathname.toLowerCase().includes('%29') ||
+        pathname.toLowerCase().includes('%28') ||
+        pathname.toLowerCase().includes('&quot;') ||
+        pathname.toLowerCase().includes('(') ||
+        pathname.toLowerCase().includes(')') ||
+        pathname.toLowerCase().includes('><')
+      ) {
+        return 'about:blank'
+      }
+
+      if (
+        search.toLowerCase().match(/%3c(?=\/)?/g) !== null ||
+        search.toLowerCase().includes('%3e') ||
+        search.toLowerCase().includes('%3f') ||
+        search.toLowerCase().includes('%3d') ||
+        search.toLowerCase().includes('%27') ||
+        search.toLowerCase().includes('%22') ||
+        search.toLowerCase().includes('&apos;') ||
+        search.toLowerCase().includes('&quot;') ||
+        search.toLowerCase().match(/\.(?:jar|dmg|exe|bin|sh|sed|py)/g) !== null
+      ) {
+        return 'about:blank'
+      }
+    }
   } catch (error) {
     if (error) {
       /* console.warn(`WARNING: unsafe URL > ${sanitizedUrl} (see https://g.co/ng/security#xss)`) */
-      return 'about:blank'
-    }
-  }
-
-  /* @CHECK: https://en.wikipedia.org/wiki/Hostname#Restrictions_on_valid_host_names */
-  /* CHECK: https://datatracker.ietf.org/doc/html/rfc3986 */
-  if (
-    /^(?:((?:www|[a-z]{1,11})\.)(?!\1)(?:[a-z\-\d]{1,63})\.(?:[a-z.\-\d]{2,63}))$/i.test(
-      hostname
-    ) ||
-    /^(((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/.test(
-      hostname
-    ) ||
-    /^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/.test(
-      hostname
-    ) ||
-    /^(?:((?:[a-z0-9-._~]{0,}|%[1-9a-f]?[0-9a-f]|[!$&'()*+,;=])|\:|\@)*)/i.test(
-      pathname
-    ) ||
-    /^((?:[a-z0-9-._~]{0,}|%[1-9a-f]?[0-9a-f]|[!$&'()*+,;=])|\:|\@|\/|\?)*$/i.test(
-      search
-    ) ||
-    /^((?:[a-z0-9-._~]{0,}|%[1-9a-f]?[0-9a-f]|[!$&'()*+,;=])|\:|\@|\/|\?)*$/i.test(
-      hash
-    )
-  ) {
-    if (hostname.includes('.00')) {
-      return 'about:blank'
-    }
-
-    if (
-      pathname.toLowerCase().includes('&apos;') ||
-      pathname.toLowerCase().includes('%29') ||
-      pathname.toLowerCase().includes('%28')
-    ) {
-      return 'about:blank'
-    }
-
-    if (
-      search.toLowerCase().match(/%3c(?=\/)?/g) !== null ||
-      search.toLowerCase().includes('%3e') ||
-      search.toLowerCase().includes('%3f') ||
-      search.toLowerCase().includes('%3d') ||
-      search.toLowerCase().includes('%27') ||
-      search.toLowerCase().includes('%22') ||
-      search.toLowerCase().includes('&apos;') ||
-      search.toLowerCase().match(/\.(?:jar|dmg|exe|bin|sh|sed|py)/g) !== null
-    ) {
       return 'about:blank'
     }
   }
