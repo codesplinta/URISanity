@@ -10,6 +10,10 @@ There are many web-based zero-day vulnerabilities that can be expolited in Brows
 
 Furthermore, other solutions like [braintree/sanitize-url](https://www.github.com/braintree/sanitize-url) are quite naive and a bit too specific in [it's approach](https://github.com/braintree/sanitize-url/issues/14) to URL sanitization. Also, most web front-end frameworks like **Angular** and **Vue** (safe for **React**) do not do a very robust and serious (non-trivial) job of sanitiziting URLs either. This is why this library is very important to web application developers who need reliability in sanitizing URLs.
 
+## Validation
+
+This library has been validated against popular malicious URIs delineated [here](https://book.hacktricks.xyz/pentesting-web/xss-cross-site-scripting) and [here](https://cheatsheetseries.owasp.org/cheatsheets/XSS_Filter_Evasion_Cheat_Sheet.html)
+
 ## Installation
 
 Install using `npm`
