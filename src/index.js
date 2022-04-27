@@ -273,9 +273,13 @@ function sanitizeUrl (url, options = {}) {
         pathname.toLowerCase().includes('&apos;') ||
         pathname.toLowerCase().includes('%29') ||
         pathname.toLowerCase().includes('%28') ||
+        pathname.toLowerCase().includes('%20') ||
+        pathname.toLowerCase().includes('%22') ||
         pathname.toLowerCase().includes('&quot;') ||
         pathname.toLowerCase().includes('(') ||
         pathname.toLowerCase().includes(')') ||
+        pathname.toLowerCase().includes('%3e') ||
+        pathname.toLowerCase().includes('%3c') ||
         pathname.toLowerCase().includes('><')
       ) {
         return 'about:blank'
