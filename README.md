@@ -47,7 +47,7 @@ All you need to do is import the package appropriately depending on the environm
 import URISanity from 'urisanity';
 
 const sanitizedUrl = URISanity.vet('blob:https://www.foo-.evil.com/undefined', {
-  // All Flag Options
+  // All flag options set - valid
   allowScriptOrDataURI: false,
   allowFileSystemURI: false,
   allowCommsAppURI: true,
@@ -60,16 +60,32 @@ const sanitizedUrl = URISanity.vet('blob:https://www.foo-.evil.com/undefined', {
 console.log(sanitizedUrl); // "about:blank"
 
 const sanitizedDBUri = URISanity.vet("jdbc:sqlserver://;servername=server_name;integratedSecurity=true;authenticationScheme=JavaKerberos", {
+  // One flag option set - valid
   allowDBConnectionStringURI: true,
+  allowFileSystemURI: false, // you can omit this since it's `false`
+  allowCommsAppURI: false, // you can omit this since it's `false`
+  allowScriptOrDataURI: false, // you can omit this since it's `false`
+  allowWebTransportURI: false, // you can omit this since it's `false`
+  allowServiceAPIURI: false // you can omit this since it's `false`
 })
 
 console.log(sanitizedDBUri) // "jdbc:sqlserver://;servername=server_name;integratedSecurity=true;authenticationScheme=JavaKerberos"
 
 const sanitizedCustomUrl = URISanity.vet(
-  'icloud-sharing://www.icloud.com/photos/01eFfrthOPvnfZqlKMn'
-);
+  'icloud-sharing://www.icloud.com/photos/01eFfrthOPvnfZqlKMn', {
+    /* No flag options set - valid */
+});
 
 console.log(sanitizedCustomUrl); // "about:blank"
+
+const santizedBadUrl = URISanity.vet('http://aa.com/</script>"><img src=x onerror="prompt(document.domain)">)', {
+  allowWebTransportURI: true,
+  allowScriptOrDataURI: true
+})
+
+console.log(sanitizedBadUrl); // "about:blank"
+
+
 
 const paramValue = URISanity.extractParamValueFromUri(
   'https://www.example.com?xyz=%200000#intro',
@@ -101,14 +117,14 @@ ORIGIN=http://127.0.0.1:4050
 ```js
 const URISanity = require('urisanity');
 
-let sanitizedUrl = URISanity.vet(
+const sanitizedFileUrl = URISanity.vet(
   'file://www.airbnb.com/Users/xxx/Desktop/index.html',
   {
-    allowWebTransportURI: true,
+    allowWebTransportURI: true
   }
 );
 
-console.log(sanitizedUrl) // "about:blank"
+console.log(sanitizedFileUrl) // "about:blank"
 ```
 
 ```js
@@ -162,7 +178,6 @@ if (typeof window.trustedTypes !== 'undefined') {
         vet URL string and return "about:blank" if URL string is suspicious
       */
       return URISanity.vet(url, {
-        allowCommsAppURI: false,
         allowWebTransportURI: true,
       })
     },
