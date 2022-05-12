@@ -25,7 +25,7 @@ const safeInternetURISchemeRegex =
 const safeURIRegex =
   /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/?)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\)){0,}(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s\!()\[\]{};:\'\"\.\,<>?«»“”‘’]){0,})/i
 /* @HINT: */
-const commsAppURISchemeRegex = 
+const commsAppURISchemeRegex =
   /^(whatsapp|zoommtg|slack|mailto|tel|callto|sms|skype)/im
 const databaseConnectionStringURISchemeRegex =
   /^(jdbc(:sqlserver|:mysql|:mariadb|:sqlite)?|odbc|postgres(ql)?|mongodb)/im
