@@ -8,6 +8,7 @@
   "files": [
     "dist",
     "examples",
+    "types",
     "CHANGELOG.md",
     "LICENSE",
     "package-lock.json",
