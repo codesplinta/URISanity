@@ -3,13 +3,13 @@
 
 declare module 'urisanity' {
     declare type Options = {
-      allowScriptOrDataURI: boolean,
-      allowFileSystemURI: boolean,
-      allowCommsAppURI: boolean,
-      allowDBConnectionStringURI: boolean,
-      allowBrowserSpecificURI: boolean,
-      allowWebTransportURI: boolean,
-      allowServiceAPIURI: boolean
+      allowScriptOrDataURI?: boolean,
+      allowFileSystemURI?: boolean,
+      allowCommsAppURI?: boolean,
+      allowDBConnectionStringURI?: boolean,
+      allowBrowserSpecificURI?: boolean,
+      allowWebTransportURI?: boolean,
+      allowServiceAPIURI?: boolean
     };
     declare type Params = string | Record<string, unknown>;
 
