@@ -2,7 +2,15 @@
 // Project: https://github.com/codesplinta/URISanity
 
 declare module 'urisanity' {
-    declare type Options = Record<string, boolean>;
+    declare type Options = {
+      allowScriptOrDataURI: boolean,
+      allowFileSystemURI: boolean,
+      allowCommsAppURI: boolean,
+      allowDBConnectionStringURI: boolean,
+      allowBrowserSpecificURI: boolean,
+      allowWebTransportURI: boolean,
+      allowServiceAPIURI: boolean
+    };
     declare type Params = string | Record<string, unknown>;
 
     export const vet = (url: string, options?: Options) => string;
