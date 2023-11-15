@@ -1,10 +1,7 @@
 // Type definitions for URI Sanity 0.1.x
 // Project: https://github.com/codesplinta/URISanity
 
-export = URISanity
-export as namespace URISanity;
-
-declare namespace URISanity {
+declare module 'urisanity' {
     declare type Options = Record<string, boolean>;
     declare type Params = string | Record<string, unknown>;
 
