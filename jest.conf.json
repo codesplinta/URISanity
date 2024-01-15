@@ -1,5 +1,26 @@
 {
     "bail": true,
     "verbose": true,
-    "displayName": "URI Sanity"
+    "displayName": "URI Sanity",
+    "automock": false,
+    "collectCoverage": true,
+    "moduleFileExtensions": [
+      "js",
+    ],
+    "moduleDirectories": [
+      "node_modules",
+      "src"
+    ],
+    "testPathIgnorePatterns": [
+      "!<rootDir>/tests"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.{js}",
+      "!<rootDir>/node_modules/",
+      "!<rootDir>/tests"
+    ],
+    "transformIgnorePatterns": [
+      "<rootDir>/node_modules/"
+    ],
+    "coverageDirectory": "coverage"
 }

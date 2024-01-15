@@ -52,6 +52,16 @@ describe('check URIs for correctness for specified flag option', () => {
   })
 })
 
+describe('check well-formed URIs', () => {
+  test('blob URI passes flag option', () => {
+    const sanitizedUrl = URISanity.vet('blob:https://www.good.foo.com/9f368042-bf23-42b6-b07c-54189d3b0e01', {
+      allowWebTransportURI: true
+    })
+
+    expect(sanitizedUrl).toEqual('blob:https://www.good.foo.com/9f368042-bf23-42b6-b07c-54189d3b0e01')
+  });
+})
+
 describe('check badly formed or suspicious URIs', () => {
   test('file URI fails flag option', () => {
     const sanitizedUrl = URISanity.vet('file://www.airbnb.com/Users/xxx/Desktop/index.html', {
@@ -67,7 +77,15 @@ describe('check badly formed or suspicious URIs', () => {
     })
 
     expect(sanitizedUrl).toEqual('about:blank')
-  })
+  });
+
+  test('blob:file URI fails flag option', () => {
+    const sanitizedUrl = URISanity.vet('blob:file:///cf368042-bf23-42b6-b07c-54189d3b0e01', {
+      allowWebTransportURI: true
+    })
+
+    expect(sanitizedUrl).toEqual('about:blank')
+  });
 
   test('AOL IM URI fails flag option', () => {
     const sanitizedUrl = URISanity.vet('aim:goim?screenname=notarealuser&message=This+joy+is+mine.', {
