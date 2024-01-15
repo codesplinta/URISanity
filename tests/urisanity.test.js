@@ -67,7 +67,23 @@ describe('check badly formed or suspicious URIs', () => {
     })
 
     expect(sanitizedUrl).toEqual('about:blank')
-  })
+  });
+
+  test('blob URI passes flag option', () => {
+    const sanitizedUrl = URISanity.vet('blob:https://www.good.foo.com/9f368042-bf23-42b6-b07c-54189d3b0e01', {
+      allowWebTransportURI: true
+    })
+
+    expect(sanitizedUrl).toEqual('blob:https://www.good.foo.com/9f368042-bf23-42b6-b07c-54189d3b0e01')
+  });
+
+  test('blob:file URI fails flag option', () => {
+    const sanitizedUrl = URISanity.vet('blob:file:///cf368042-bf23-42b6-b07c-54189d3b0e01', {
+      allowWebTransportURI: true
+    })
+
+    expect(sanitizedUrl).toEqual('about:blank')
+  });
 
   test('AOL IM URI fails flag option', () => {
     const sanitizedUrl = URISanity.vet('aim:goim?screenname=notarealuser&message=This+joy+is+mine.', {
