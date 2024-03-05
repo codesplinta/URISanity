@@ -10,7 +10,7 @@
  * See: https://en.wikipedia.org/wiki/List_of_URI_schemes
  *
  * @created: 23/06/2021
- * @last-updated: 04/03/2024
+ * @last-updated: 05/03/2024
  */
 
 /* eslint-disable no-useless-escape */
