@@ -2,7 +2,7 @@
  * @author: https://twitter.com/isocroft
  * @owner: https://twitter.com/codesplinta
  *
- * @Copyright (c) 2021 - 2022
+ * @Copyright (c) 2021 - 2024
  *
  * @sourced: [first-party] https://github.com/braintree/sanitize-url
  *
@@ -10,14 +10,14 @@
  * See: https://en.wikipedia.org/wiki/List_of_URI_schemes
  *
  * @created: 23/06/2021
- * @last-updated: 21/04/2022
+ * @last-updated: 04/03/2024
  */
 
 /* eslint-disable no-useless-escape */
 
 /* @HINT: all URI schemes that are mostly unsafe for web browsers to launch */
 const unsafeURISchemeRegex =
-  /^([^\w]*)(unsafe|javascript|vbscript|app|admin|icloud-sharing|icloud-vetting|help|aim|facetime-audio|applefeedback|ibooks|macappstore|udoc|ts|st|x-apple-helpbasic|(?:x\-)?radar)/im
+  /^([^\w]*)(unsafe|javascript|vbscript|app|admin|icloud-sharing|icloud-vetting|help|aim|facetime-audio|applefeedback|ibooks|macappstore|udoc|ts|st|jar|x-apple-helpbasic|(?:x\-)?radar)/im
 /* @HINT: all URI schemes that are mostly safe for web browsers to launch */
 const safeInternetURISchemeRegex =
   /^(?:(?:f|ht)tps?|cid|xmpp|mms|webcal|aaa|acap|bolo|data|blob|file|local|wss?|irc|udp)/im
@@ -29,12 +29,26 @@ const commsAppURISchemeRegex =
   /^(whatsapp|zoommtg|slack|mailto|tel|callto|sms|skype)/im
 const databaseConnectionStringURISchemeRegex =
   /^(jdbc(:sqlserver|:mysql|:mariadb|:sqlite)?|odbc|postgres(ql)?|mongodb)/im
-const browserURISchemeRegex = /^(view-source|moz-extension|(?:filesystem:|blob:)?chrome-extension)/im
+const browserURISchemeRegex = /^(view-source|moz-extension|resource|res|symres|(?:filesystem:|blob:)?chrome-extension|safari|chrome|mxaddon-pkg|mx|mxwebcore|mxjscall|mbinit|safari-resource|opera|webviewprogressproxy|chromenull|chromeinvoke|chromeinvokeimmediate)/im
 /* @CHECK: - FILE URI */
 /* @CHECK: https://www.w3.org/TR/FileAPI/#blob-url - BLOB URL */
-const fileSystemURISchemeRegex = /^(file|local|blob)/im
-const serviceAPIURISchemeRegex = /^(cloudinary|obsidian|gs|s3|grpc)/im
+const fileSystemURISchemeRegex = /^((?:jar:)?file|local|blob)/im
+const serviceAPIURISchemeRegex = /^(cloudinary|obsidian|gs|s3|grpc|pptr|tmtbff)/im
+
 /* @HINT: */
+const blockedHosts = [
+  'widgets.amung.us',
+  'v.zilionfast.in',
+  'js.blinkadr.com',
+  'www.superfish.com',
+  'nzj.divdriver.net',
+  'istatic.datafastguru.info',
+  'widgets.amung.us',
+  'xls.searchfun.in',
+  'static.image2play.com'
+]
+
+/* @HINT: All control characters */
 const ctrlCharactersRegex =
   /[\u0000-\u001F\u007F-\u009F\u2000-\u200D\uFEFF]/gim; /* eslint-disable-line */
 // const urlSchemeRegex = /^([^:]+):/gm
@@ -153,9 +167,14 @@ function checkParamsOverWhiteList (uri, paramsWhiteList = [], data = '') {
     return false
   }
 
+  if (typeof paramsWhiteList !== 'object') {
+    return false
+  }
+
   const parsedUrl = new $globals.URL(uri.trim())
   const paramKeys = []
   const paramValues = []
+
   let preparedData = null
 
   try {
@@ -197,10 +216,33 @@ function checkParamsOverWhiteList (uri, paramsWhiteList = [], data = '') {
     }
   }
 
-  /* @HINT: Check that only the request params we need are attached */
-  /* @HINT: Any other extra params should not be allowed */
-  if (paramKeys.length === paramsWhiteList.length) {
-    return true
+  if (paramKeys.length === paramValues.length) {
+    if (paramsWhiteList instanceof Array) {
+      /* @HINT: Check that only the request params we need are attached */
+      /* @HINT: Any other extra params should not be allowed */
+      if (paramKeys.length === paramsWhiteList.length &&
+        paramKeys.slice(0).sort().join('|') === paramsWhiteList.slice(0).sort().join('|')) {
+        return true
+      }
+    } else if (paramsWhiteList instanceof Object) {
+      let paramsCounter = 0
+      for (; paramsCounter < paramKeys.length; paramsCounter++) {
+        const paramKey = paramKeys[paramsCounter]
+        const paramValue = paramValues[paramsCounter]
+        const paramRegex = paramsWhiteList[paramKey]
+
+        if (paramRegex instanceof RegExp) {
+          if (!paramRegex.test(paramValue)) {
+            break
+          }
+        } else {
+          throw new Error(`"${paramKey}" does not have a matching regex pattern to match "${paramValue}"`)
+        }
+      }
+      if (paramsCounter === paramValues.length) {
+        return true
+      }
+    }
   }
 
   return false
@@ -265,7 +307,7 @@ function sanitizeUrl (url, options = {}) {
         hash
       )
     ) {
-      if (hostname.includes('.00')) {
+      if (hostname.includes('.00') || blockedHosts.indexOf(hostname) !== -1) {
         return 'about:blank'
       }
 

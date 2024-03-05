@@ -1,9 +1,18 @@
 const URISanity = require('../dist/urisanity.cjs')
 
-test('check param validity for GRPC URI', () => {
+test('check param validity for GRPC URI using a params list', () => {
   const checkValid = URISanity.checkParamsOverWhiteList(
     'grpc://api.broker.rt-msg.io:443?user=sal%C3%A1ta',
     ['user']
+  )
+
+  expect(checkValid).toBe(true)
+})
+
+test('check param validity for GRPC URI using a param list with regex', () => {
+  const checkValid = URISanity.checkParamsOverWhiteList(
+    'grpc://api.broker.rt-msg.io:443?id=13440500AD',
+    { 'id': /^(?:[\d]{8})(?:[A-Z]{2})$/ }
   )
 
   expect(checkValid).toBe(true)

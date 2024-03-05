@@ -5,7 +5,7 @@
     "automock": false,
     "collectCoverage": true,
     "moduleFileExtensions": [
-      "js",
+      "js"
     ],
     "moduleDirectories": [
       "node_modules",
@@ -13,14 +13,6 @@
     ],
     "testPathIgnorePatterns": [
       "!<rootDir>/tests"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.{js}",
-      "!<rootDir>/node_modules/",
-      "!<rootDir>/tests"
-    ],
-    "transformIgnorePatterns": [
-      "<rootDir>/node_modules/"
     ],
     "coverageDirectory": "coverage"
 }
