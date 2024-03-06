@@ -19,7 +19,7 @@ const config = {
 
     },
     format: 'umd',
-    sourcemap: true,
+    sourcemap: true
     // banner: `/*!\r\n * URISanity: Date=${new Date()};NodeBuildVersion=${parseInt(String(node))}\r\n *\r\n */\r\n`
   },
   plugins: [
