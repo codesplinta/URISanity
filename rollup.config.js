@@ -7,7 +7,7 @@ const fs = require('fs')
 
 const env = process.env.NODE_ENV
 const isProd = env === 'production'
-const { node } = process.versions
+// const { node } = process.versions
 const { version } = fs.readFileSync('./package.json', 'utf8')
 
 const config = {
@@ -20,7 +20,7 @@ const config = {
     },
     format: 'umd',
     sourcemap: true,
-    banner: `/*!\r\n * URISanity: Date=${new Date()};NodeBuildVersion=${parseInt(String(node))}\r\n *\r\n */\r\n`
+    // banner: `/*!\r\n * URISanity: Date=${new Date()};NodeBuildVersion=${parseInt(String(node))}\r\n *\r\n */\r\n`
   },
   plugins: [
     nodeResolve({
