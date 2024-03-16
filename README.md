@@ -38,7 +38,7 @@ All you need to do is import the package appropriately depending on the environm
 > Using a `script` tag directly inside a web page
 
 ```html
-<script type="text/javascript" src="https://unpkg.com/browse/urisanity@0.1.1/dist/urisanity.min.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://unpkg.com/browse/urisanity@0.1.3/dist/urisanity.min.js" crossorigin="anonymous"></script>
 ```
 
 > import as ES6 module - no setup required
