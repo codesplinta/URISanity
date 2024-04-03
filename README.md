@@ -1,4 +1,4 @@
-![@isocroft](https://img.shields.io/badge/@isocroft-CodeSplinta-blue) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) [![Made in Nigeria](https://img.shields.io/badge/made%20in-nigeria-008751.svg?style=flat-square)](https://github.com/acekyd/made-in-nigeria)
+![@isocroft](https://img.shields.io/badge/@isocroft-CodeSplinta-blue) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-cyan.svg?style=flat-square)](http://makeapullrequest.com) [![Made in Nigeria](https://img.shields.io/badge/made%20in-nigeria-008751.svg?style=flat-square)](https://github.com/acekyd/made-in-nigeria)
 
 # URI Sanity
 
@@ -38,7 +38,7 @@ All you need to do is import the package appropriately depending on the environm
 > Using a `script` tag directly inside a web page
 
 ```html
-<script type="text/javascript" src="https://unpkg.com/browse/urisanity@0.1.3/dist/urisanity.min.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://unpkg.com/browse/urisanity@0.1.4/dist/urisanity.min.js" crossorigin="anonymous"></script>
 ```
 
 > import as ES6 module - no setup required

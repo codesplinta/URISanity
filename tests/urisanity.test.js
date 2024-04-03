@@ -69,11 +69,43 @@ describe('check well-formed URIs', () => {
 
     expect(sanitizedUrl).toEqual('blob:https://www.good.foo.com/9f368042-bf23-42b6-b07c-54189d3b0e01')
   });
+
+  test('mailto URI passes flag option', () => {
+    const sanitizedUrl = URISanity.vet('mailto:hello@example.com', {
+      allowWebTransportURI: true
+    })
+
+    expect(sanitizedUrl).toEqual('mailto:hello@example.com')
+  })
 })
 
 describe('check badly formed or suspicious URIs', () => {
   test('file URI fails flag option', () => {
     const sanitizedUrl = URISanity.vet('file://www.airbnb.com/Users/xxx/Desktop/index.html', {
+      allowWebTransportURI: true
+    })
+
+    expect(sanitizedUrl).toEqual('about:blank')
+  })
+
+  test('http URI with malicious JS code fails flag option', () => {
+    const  sanitizedUrl = URISanity.vet('http://example.com/?<script>alert(document.domain);</script>', {
+      allowWebTransportURI: true
+    })
+
+    expect(sanitizedUrl).toEqual('about:blank')
+  })
+
+  test('http URI with malicious markup script disguised as query string fails flag option', () => {
+    const sanitizedUrl = URISanity.vet('http://example.com/"onmouseover="alert(1)"', {
+      allowWebTransportURI: true
+    })
+
+    expect(sanitizedUrl).toEqual('about:blank')
+  })
+
+  test('http URI with multiple question mark characters in query string fails flag option', () => {
+    const sanitizedUrl = URISanity.vet('https://wordcrest.com/api/intent/lock/?t=9204949949?t=9595005005?t=096989549983', {
       allowWebTransportURI: true
     })
 

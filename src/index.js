@@ -10,7 +10,7 @@
  * See: https://en.wikipedia.org/wiki/List_of_URI_schemes
  *
  * @created: 23/06/2021
- * @last-updated: 05/03/2024
+ * @last-updated: 05/04/2024
  */
 
 /* eslint-disable no-useless-escape */
@@ -57,7 +57,7 @@ const dataURIBINRegex =
   /^data:(?:image\/(?:bmp|gif|jpeg|jpg|png|tiff|webp|svg\+xml)|video\/(?:mpeg|mp4|ogg|webm)|audio\/(?:mp3|oga|ogg|opus));base64,(?:[a-zA-Z0-9\/+\n=]+)$/i
 const dataURITEXTRegex = /^data:(?:text\/(?:javascript|html|css|plain))(?:;charset=(UTF-8|iso-8859-7))?,(?:.*)$/im
 const scriptURIRegex = /^(?:vb|java)(?:\s*)?script/im
-const webTransportURIRegex = /^(?:(blob:)?https?|wss?|about)/im
+const webTransportURIRegex = /^(?:(blob:)?https?|wss?|about|mailto|tel)/im
 const relativeFirstCharacters = ['.', '/']
 
 /* @HINT: Global Stub for the Browser, ReactNative, NativeScript, NodeJS */
@@ -248,11 +248,26 @@ function checkParamsOverWhiteList (uri, paramsWhiteList = [], data = '') {
   return false
 }
 
+/**
+ * @source: https://stackoverflow.com/a/13763250
+ *
+ * @param {String} stringSample
+ * @returns
+ */
+const hasHTMLEntity = (stringSample = '') => {
+  if (typeof stringSample !== 'string') {
+    return false
+  }
+  return /&(?:[a-z]+|#x?\d+);/gim.test(stringSample)
+}
+
 function sanitizeUrl (url, options = {}) {
   if (
     !url ||
     url.match(/:\/\/(?:[#$@=*.!]|[/]){0,}$/) !== null ||
-    url.includes('////////////')
+    url.includes('////////////') ||
+    /* @TODO: URIs that contain HTML entities should be allowed and processed by decoding them in a later release (v0.0.8) of URISanity */
+    hasHTMLEntity(url) /* @NOTE: This line will need to be excluded from this `if` condition */
   ) {
     return 'about:blank'
   }
@@ -285,6 +300,12 @@ function sanitizeUrl (url, options = {}) {
       sanitizedUrl.toLowerCase()
     )
 
+    const matches = search.match(/\?/g) || []
+
+    if (matches.length > 1) {
+      return 'about:blank'
+    }
+
     /* @CHECK: https://en.wikipedia.org/wiki/Hostname#Restrictions_on_valid_host_names */
     /* CHECK: https://datatracker.ietf.org/doc/html/rfc3986 */
     if (
@@ -300,10 +321,10 @@ function sanitizeUrl (url, options = {}) {
       /^(?:((?:[a-z0-9-._~]{0,}|%[1-9a-f]?[0-9a-f]|[!$&'()*+,;=])|\:|\@)*)/i.test(
         pathname
       ) ||
-      /^((?:[a-z0-9-._~]{0,}|%[1-9a-f]?[0-9a-f]|[!$&'()*+,;=])|\:|\@|\/|\?)*$/i.test(
+      /^((?:[a-z0-9-._~]{0,}|%[1-9a-f]?[0-9a-f]|[!$&'()*+,;=])|\:|\@|\/|\?)*$/gi.test(
         search
       ) ||
-      /^((?:[a-z0-9-._~]{0,}|%[1-9a-f]?[0-9a-f]|[!$&'()*+,;=])|\:|\@|\/|\?)*$/i.test(
+      /^((?:[a-z0-9-._~]{0,}|%[1-9a-f]?[0-9a-f]|[!$&'()*+,;=])|\:|\@|\/|\?)*$/gi.test(
         hash
       )
     ) {
@@ -343,7 +364,6 @@ function sanitizeUrl (url, options = {}) {
     }
   } catch (error) {
     if (error) {
-      /* console.warn(`WARNING: unsafe URL > ${sanitizedUrl} (see https://g.co/ng/security#xss)`) */
       return 'about:blank'
     }
   }
@@ -404,7 +424,6 @@ function sanitizeUrl (url, options = {}) {
     if (urlScheme !== '' && pass) {
       return sanitizedUrl
     } else {
-      /* console.warn(`WARNING: unsafe URL > ${sanitizedUrl} (see https://g.co/ng/security#xss)`) */
       return 'about:blank'
     }
   }

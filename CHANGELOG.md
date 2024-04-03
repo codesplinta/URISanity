@@ -1,3 +1,13 @@
+<a name="0.1.4"></a>
+# 0.1.4 (2024-04-03)
+
+### Features Added
+- None
+
+### Bug Fixes
+- Fixed bugs around unsafe charcters in URIs
+- Fixed issues with Typescript declarations file
+
 <a name="0.1.3"></a>
 # 0.1.3 (2024-03-05)
 

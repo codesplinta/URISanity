@@ -1,8 +1,8 @@
-// Type definitions for URI Sanity 0.1.x
+// Type definitions for urisanity v0.1.4
 // Project: https://github.com/codesplinta/URISanity
 
 declare module 'urisanity' {
-    declare type Options = {
+    export type Options = {
       allowScriptOrDataURI?: boolean,
       allowFileSystemURI?: boolean,
       allowCommsAppURI?: boolean,
@@ -11,10 +11,16 @@ declare module 'urisanity' {
       allowWebTransportURI?: boolean,
       allowServiceAPIURI?: boolean
     };
-    declare type Params = string | Record<string, unknown>;
+    export type Params = string | Record<string, unknown>;
 
-    export const vet = (url: string, options?: Options) => string;
-    export const isSameOrigin = (uri: string) => boolean;
-    export const extractParamValueFromUri = (uri: string, queryParamName: string) => string;
-    export const checkParamsOverWhiteList = (uri: string, paramsWhiteList?: string[], params?: Params) => boolean;
+    const URISanity: { 
+      vet(url: string, options?: Options): string;
+      isSameOrigin(uri: string): boolean;
+      extractParamValueFromUri(uri: string, queryParamName: string): string;
+      checkParamsOverWhiteList(uri: string, paramsWhiteList?: string[] | Record<string, RegExp>, params?: Params): boolean;
+    };
+
+    export type URISanityAPI = typeof URISanity;
+
+    export default URISanity;
 }
