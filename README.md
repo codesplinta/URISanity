@@ -106,7 +106,7 @@ const isSame = URISanity.isSameOrigin(window.location.href)
 console.log(isSame) // true
 ```
 
-### NodeJS environment
+### NodeJS (commonjs) environment
 
 > Setup an env file in your NodeJS app and include an `ORIGIN`
 
