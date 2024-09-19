@@ -70,6 +70,20 @@ describe('check well-formed URIs', () => {
     expect(sanitizedUrl).toEqual('blob:https://www.good.foo.com/9f368042-bf23-42b6-b07c-54189d3b0e01')
   });
 
+  test('PDF file path URI passes flag option', () => {
+    const sanitizedUrl = URISanity.vet('https://www.business-site.com/housefs/3.%20User%20Documents/0Benefits%20Guide.pdf', {
+      allowScriptOrDataURI: true,
+      allowFileSystemURI: true,
+      allowCommsAppURI: true,
+      allowDBConnectionStringURI: true,
+      allowBrowserSpecificURI: true,
+      allowWebTransportURI: true,
+      allowServiceAPIURI: true,
+    })
+
+    expect(sanitizedUrl).toBe('https://www.business-site.com/housefs/3.%20User%20Documents/0Benefits%20Guide.pdf')
+  })
+
   test('mailto URI passes flag option', () => {
     const sanitizedUrl = URISanity.vet('mailto:hello@example.com', {
       allowWebTransportURI: true

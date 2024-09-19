@@ -10,7 +10,7 @@
  * See: https://en.wikipedia.org/wiki/List_of_URI_schemes
  *
  * @created: 23/06/2021
- * @last-updated: 05/04/2024
+ * @last-updated: 21/09/2024
  */
 
 /* eslint-disable no-useless-escape */
@@ -336,14 +336,16 @@ function sanitizeUrl (url, options = {}) {
         pathname.toLowerCase().includes('&apos;') ||
         pathname.toLowerCase().includes('%29') ||
         pathname.toLowerCase().includes('%28') ||
-        pathname.toLowerCase().includes('%20') ||
         pathname.toLowerCase().includes('%22') ||
         pathname.toLowerCase().includes('&quot;') ||
+        pathname.toLowerCase().includes('&#39') ||
         pathname.toLowerCase().includes('(') ||
         pathname.toLowerCase().includes(')') ||
         pathname.toLowerCase().includes('%3e') ||
         pathname.toLowerCase().includes('%3c') ||
-        pathname.toLowerCase().includes('><')
+        pathname.toLowerCase().includes('><') ||
+        pathname.toLowerCase().includes('</') ||
+        pathname.toLowerCase().match(/\.(?:jar|dmg|exe|bin|sh|sed|py)/g) !== null
       ) {
         return 'about:blank'
       }
@@ -355,7 +357,9 @@ function sanitizeUrl (url, options = {}) {
         search.toLowerCase().includes('%3d') ||
         search.toLowerCase().includes('%27') ||
         search.toLowerCase().includes('%22') ||
+        search.toLowerCase().includes('&#39') ||
         search.toLowerCase().includes('&apos;') ||
+        search.toLowerCase().includes('</') ||
         search.toLowerCase().includes('&quot;') ||
         search.toLowerCase().match(/\.(?:jar|dmg|exe|bin|sh|sed|py)/g) !== null
       ) {

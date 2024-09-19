@@ -1,8 +1,18 @@
+<a name="0.1.6"></a>
+# 0.1.6 (2024-09-20)
+
+### Features Added
+- None
+
+### Bug Fixes
+- Fixed [Issue 1](https://github.com/codesplinta/URISanity/issues/1) reported by [@ccrawford4](https://github.com/ccrawford4)
+
 <a name="0.1.5"></a>
 # 0.1.5 (2024-04-08)
 
 ### Features Added
-- None
+- Refactored `checkParamsOverWhiteList(...)` function to allow second argument (`paramsWhiteList`) take  
+not only arrays but objects { key: value } pair too
 
 ### Bug Fixes
 - None

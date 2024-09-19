@@ -1,4 +1,4 @@
-// Type definitions for urisanity v0.1.5
+// Type definitions for urisanity v0.1.6
 // Project: https://github.com/codesplinta/URISanity
 
 declare module 'urisanity' {

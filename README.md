@@ -38,7 +38,7 @@ All you need to do is import the package appropriately depending on the environm
 > Using a `script` tag directly inside a web page
 
 ```html
-<script type="text/javascript" src="https://unpkg.com/browse/urisanity@0.1.5/dist/urisanity.min.js" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://unpkg.com/browse/urisanity@0.1.6/dist/urisanity.min.js" crossorigin="anonymous"></script>
 ```
 
 > import as ES6 module - no setup required
@@ -380,7 +380,7 @@ if ('toSource' in NativeSendBeacon) {
 }
 ```
 
-Finally, the code above in the event handler get triggered whenever `navigator.sendBeacon()` is called and the URLs are using **URISanity**.
+Finally, the code above in the event handler get triggered whenever `navigator.sendBeacon()` is called and the URLs are using **URISanity**. The [zhorn](https://www.npmjs.com/package/zhorn) package provides all of this functionality and depends on **URISanity**.
 
 ## Documentation
 
